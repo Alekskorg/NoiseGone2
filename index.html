@@ -130,5 +130,48 @@
       currentLang = currentLang === 'ru' ? 'en' : 'ru';
       const t = translations[currentLang];
       document.getElementById("uploadText").textContent = t.upload;
-      document.getElementById("proce
+      document.getElementById("processBtn").textContent = t.process;
+      document.getElementById("langLabel").textContent = t.langLabel;
 
+      const statusText = document.getElementById("status").textContent;
+      if (statusText === translations.ru.done || statusText === translations.en.done) {
+        document.getElementById("downloadBtn").textContent = t.download;
+        document.getElementById("status").textContent = t.done;
+      }
+    }
+
+    function simulateProcessing() {
+      const fileInput = document.getElementById('fileInput');
+      const status = document.getElementById('status');
+      const spinner = document.getElementById('spinner');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const t = translations[currentLang];
+
+      if (!fileInput.files.length) {
+        status.textContent = t.choose;
+        return;
+      }
+
+      const file = fileInput.files[0];
+      status.textContent = t.processing;
+      spinner.style.display = "inline-block";
+      downloadBtn.style.display = "none";
+
+      const reader = new FileReader();
+      reader.onload = function () {
+        setTimeout(() => {
+          const blob = new Blob([reader.result], { type: file.type });
+          const url = URL.createObjectURL(blob);
+          downloadBtn.href = url;
+          downloadBtn.download = "cleaned_" + file.name;
+          downloadBtn.style.display = "inline-block";
+          downloadBtn.textContent = t.download;
+          status.textContent = t.done;
+          spinner.style.display = "none";
+        }, 3000);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  </script>
+</body>
+</html>
