@@ -1,170 +1,135 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NoiseGone - Очистка звука</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <style>
-    * {
-      box-sizing: border-box;
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #d8eefe, #ebd4f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
     }
 
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #e0f7fa, #e1bee7);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 2rem;
+      box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
       position: relative;
+    }
+
+    .logo {
+      max-width: 120px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+      margin-bottom: 20px;
+    }
+
+    button {
+      background-color: #34a853;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #2c8c46;
     }
 
     .language-switcher {
       position: absolute;
       top: 20px;
       right: 20px;
-      font-size: 14px;
-      background-color: rgba(255,255,255,0.8);
+      background: #fff;
       padding: 6px 12px;
       border-radius: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      color: #333;
-      transition: background-color 0.3s;
-    }
-
-    .language-switcher:hover {
-      background-color: white;
-    }
-
-    .box {
-      background: white;
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-      text-align: center;
-      width: 100%;
-      max-width: 350px;
-    }
-
-    h1 {
-      color: #333;
-      margin-bottom: 10px;
-    }
-
-    p {
-      color: #666;
       font-size: 14px;
-    }
-
-    input[type="file"] {
-      margin: 20px 0;
-    }
-
-    button {
-      padding: 12px 24px;
-      border: none;
-      background-color: #4CAF50;
-      color: white;
-      font-size: 16px;
-      border-radius: 10px;
       cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
-
-    #status {
-      margin-top: 20px;
-      font-weight: bold;
-      color: #555;
-    }
-
-    #spinner {
-      font-size: 24px;
-      display: none;
-      animation: spin 1s linear infinite;
-      margin-top: 10px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    #downloadBtn {
-      display: none;
-      margin-top: 20px;
-      padding: 10px 18px;
-      background-color: #007bff;
-      color: white;
-      border-radius: 10px;
-      text-decoration: none;
-      font-size: 14px;
-      transition: background-color 0.3s;
-    }
-
-    #downloadBtn:hover {
-      background-color: #0056b3;
-    }
-
-    img {
-      max-height: 160px;
-      margin-bottom: 25px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
   </style>
-</head>
-<body>
-  <div class="language-switcher">EN</div>
-  <div class="box">
-    <img src="logo.png" alt="NoiseGone logo" />
-    <h1>NoiseGone</h1>
-    <p>Загрузите аудиофайл, и мы удалим шум</p>
-    <input type="file" id="fileInput" accept="audio/*" />
-    <br />
-    <button onclick="simulateProcessing()">Очистить шум</button>
-    <div id="spinner">🔄</div>
-    <div id="status"></div>
-    <a id="downloadBtn" download="cleaned_audio.mp3">⬇️ Скачать очищенный файл</a>
-  </div>
-
   <script>
-    function simulateProcessing() {
-      const fileInput = document.getElementById('fileInput');
-      const status = document.getElementById('status');
-      const spinner = document.getElementById('spinner');
-      const downloadBtn = document.getElementById('downloadBtn');
-
-      if (!fileInput.files.length) {
-        status.textContent = "⚠️ Пожалуйста, выберите файл.";
-        return;
+    const translations = {
+      ru: {
+        heading: "NoiseGone",
+        description: "Загрузите аудиофайл, и мы удалим шум",
+        chooseFile: "Выберите файл",
+        button: "Очистить шум",
+        processing: "Идёт обработка...",
+        done: "✅ Шум удалён!",
+        download: "⬇️ Скачать очищенный файл"
+      },
+      en: {
+        heading: "NoiseGone",
+        description: "Upload an audio file and we'll remove the noise",
+        chooseFile: "Choose file",
+        button: "Clean noise",
+        processing: "Processing...",
+        done: "✅ Noise removed!",
+        download: "⬇️ Download cleaned file"
       }
+    };
 
-      const file = fileInput.files[0];
-      status.textContent = "Идёт обработка...";
-      spinner.style.display = "inline-block";
-      downloadBtn.style.display = "none";
+    let currentLang = 'ru';
 
-      const reader = new FileReader();
-      reader.onload = function () {
-        setTimeout(() => {
-          const blob = new Blob([reader.result], { type: file.type });
-          const url = URL.createObjectURL(blob);
-          downloadBtn.href = url;
-          downloadBtn.download = "cleaned_" + file.name;
-          downloadBtn.style.display = "inline-block";
-          status.textContent = "✅ Шум удалён!";
-          spinner.style.display = "none";
-        }, 3000);
-      };
-      reader.readAsArrayBuffer(file);
+    function switchLanguage() {
+      currentLang = currentLang === 'ru' ? 'en' : 'ru';
+      const t = translations[currentLang];
+      document.querySelector('h1').textContent = t.heading;
+      document.querySelector('p').textContent = t.description;
+      document.querySelector('button').textContent = t.button;
+      document.querySelector('.language-switcher').textContent = currentLang === 'ru' ? 'EN' : 'RU';
+    }
+
+    function simulateProcessing() {
+      const status = document.getElementById('status');
+      const downloadBtn = document.getElementById('download');
+      status.textContent = translations[currentLang].processing;
+      downloadBtn.style.display = 'none';
+      setTimeout(() => {
+        status.textContent = translations[currentLang].done;
+        downloadBtn.style.display = 'inline-block';
+        downloadBtn.textContent = translations[currentLang].download;
+      }, 2000);
     }
   </script>
+</head>
+<body>
+  <div class="container">
+    <div class="language-switcher" onclick="switchLanguage()">EN</div>
+    <img src="logo.png" alt="NoiseGone" class="logo">
+    <h1>NoiseGone</h1>
+    <p>Загрузите аудиофайл, и мы удалим шум</p>
+    <input type="file" id="fileInput">
+    <br>
+    <button onclick="simulateProcessing()">Очистить шум</button>
+    <p id="status"></p>
+    <a id="download" href="#" download style="display:none;"></a>
+  </div>
 </body>
 </html>
