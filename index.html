@@ -4,50 +4,67 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NoiseGone - Очистка звука</title>
-  <link rel="icon" href="favicon2.ico" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <style>
     * {
       box-sizing: border-box;
     }
-   body {
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #e0f7fa, #e1bee7);
-  margin: 0;
-  padding: 40px 10px;
-  display: flex;
-  justify-content: center;
-}
 
-.box {
-  background: white;
-  padding: 40px 30px;
-  border-radius: 20px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-  text-align: center;
-  width: 100%;
-  max-width: 480px;
-  transition: transform 0.3s ease;
-}
-.box:hover {
-  transform: translateY(-3px);
-}
-    img {
-      max-width: 120px;
-      margin-bottom: 25px;
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #e1bee7);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      position: relative;
     }
+
+    .language-switcher {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 14px;
+      background-color: rgba(255,255,255,0.8);
+      padding: 6px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #333;
+      transition: background-color 0.3s;
+    }
+
+    .language-switcher:hover {
+      background-color: white;
+    }
+
+    .box {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+      text-align: center;
+      width: 100%;
+      max-width: 350px;
+    }
+
     h1 {
       color: #333;
       margin-bottom: 10px;
-      font-size: 24px;
     }
+
     p {
       color: #666;
       font-size: 14px;
     }
+
     input[type="file"] {
       margin: 20px 0;
     }
+
     button {
       padding: 12px 24px;
       border: none;
@@ -58,24 +75,29 @@
       cursor: pointer;
       transition: background-color 0.3s;
     }
+
     button:hover {
       background-color: #45a049;
     }
+
     #status {
       margin-top: 20px;
       font-weight: bold;
       color: #555;
     }
+
     #spinner {
       font-size: 24px;
       display: none;
       animation: spin 1s linear infinite;
       margin-top: 10px;
     }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
     #downloadBtn {
       display: none;
       margin-top: 20px;
@@ -87,12 +109,19 @@
       font-size: 14px;
       transition: background-color 0.3s;
     }
+
     #downloadBtn:hover {
       background-color: #0056b3;
+    }
+
+    img {
+      max-height: 160px;
+      margin-bottom: 25px;
     }
   </style>
 </head>
 <body>
+  <div class="language-switcher">EN</div>
   <div class="box">
     <img src="logo.png" alt="NoiseGone logo" />
     <h1>NoiseGone</h1>
