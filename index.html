@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NoiseGone - Очистка звука</title>
-  <link rel="icon" href="favicon.23.png" type="image/x-icon">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
@@ -23,6 +23,15 @@
       box-shadow: 0 12px 30px rgba(0,0,0,0.15);
       text-align: center;
       width: 320px;
+      position: relative;
+    }
+    .lang-toggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #007bff;
     }
     h1 {
       color: #333;
@@ -81,48 +90,45 @@
 </head>
 <body>
   <div class="box">
+    <div class="lang-toggle" onclick="toggleLanguage()">🌐 <span id="langLabel">EN</span></div>
     <img src="logo.png" alt="NoiseGone logo" style="height: 180px; margin-bottom: 25px;" />
-<h1>NoiseGone</h1>
-    <p>Загрузите аудиофайл, и мы удалим шум</p>
+    <h1>NoiseGone</h1>
+    <p id="uploadText">Загрузите аудиофайл, и мы удалим шум</p>
     <input type="file" id="fileInput" accept="audio/*" />
     <br />
-    <button onclick="simulateProcessing()">Очистить шум</button>
+    <button id="processBtn" onclick="simulateProcessing()">Очистить шум</button>
     <div id="spinner">🔄</div>
     <div id="status"></div>
     <a id="downloadBtn" download="cleaned_audio.mp3">⬇️ Скачать очищенный файл</a>
   </div>
 
   <script>
-    function simulateProcessing() {
-      const fileInput = document.getElementById('fileInput');
-      const status = document.getElementById('status');
-      const spinner = document.getElementById('spinner');
-      const downloadBtn = document.getElementById('downloadBtn');
+    let currentLang = 'ru';
 
-      if (!fileInput.files.length) {
-        status.textContent = "⚠️ Пожалуйста, выберите файл.";
-        return;
+    const translations = {
+      ru: {
+        upload: "Загрузите аудиофайл, и мы удалим шум",
+        process: "Очистить шум",
+        choose: "⚠️ Пожалуйста, выберите файл.",
+        processing: "Идёт обработка...",
+        done: "✅ Шум удалён!",
+        download: "⬇️ Скачать очищенный файл",
+        langLabel: "EN"
+      },
+      en: {
+        upload: "Upload an audio file and we’ll remove the noise",
+        process: "Clean noise",
+        choose: "⚠️ Please select a file.",
+        processing: "Processing...",
+        done: "✅ Noise removed!",
+        download: "⬇️ Download cleaned file",
+        langLabel: "RU"
       }
+    };
 
-      const file = fileInput.files[0];
-      status.textContent = "Идёт обработка...";
-      spinner.style.display = "inline-block";
-      downloadBtn.style.display = "none";
+    function toggleLanguage() {
+      currentLang = currentLang === 'ru' ? 'en' : 'ru';
+      const t = translations[currentLang];
+      document.getElementById("uploadText").textContent = t.upload;
+      document.getElementById("proce
 
-      const reader = new FileReader();
-      reader.onload = function () {
-        setTimeout(() => {
-          const blob = new Blob([reader.result], { type: file.type });
-          const url = URL.createObjectURL(blob);
-          downloadBtn.href = url;
-          downloadBtn.download = "cleaned_" + file.name;
-          downloadBtn.style.display = "inline-block";
-          status.textContent = "✅ Шум удалён!";
-          spinner.style.display = "none";
-        }, 3000);
-      };
-      reader.readAsArrayBuffer(file);
-    }
-  </script>
-</body>
-</html>
