@@ -41,6 +41,14 @@
       font-weight: bold;
       color: #555;
     }
+    #downloadBtn {
+      display: none;
+      margin-top: 20px;
+      background-color: #007bff;
+    }
+    #downloadBtn:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
@@ -51,26 +59,37 @@
     <br />
     <button onclick="simulateProcessing()">Очистить шум</button>
     <div id="status"></div>
+    <a id="downloadBtn" download="cleaned_audio.mp3">⬇️ Скачать очищенный файл</a>
   </div>
 
   <script>
     function simulateProcessing() {
       const fileInput = document.getElementById('fileInput');
       const status = document.getElementById('status');
+      const downloadBtn = document.getElementById('downloadBtn');
 
       if (!fileInput.files.length) {
         status.textContent = "⚠️ Пожалуйста, выберите файл.";
         return;
       }
 
+      const file = fileInput.files[0];
       status.textContent = "🔄 Идёт обработка файла...";
-      
-      setTimeout(() => {
-        status.textContent = "✅ Шум успешно удалён!";
-      }, 3000);
+      downloadBtn.style.display = "none";
+
+      const reader = new FileReader();
+      reader.onload = function () {
+        setTimeout(() => {
+          const blob = new Blob([reader.result], { type: file.type });
+          const url = URL.createObjectURL(blob);
+          downloadBtn.href = url;
+          downloadBtn.download = "cleaned_" + file.name;
+          downloadBtn.style.display = "inline-block";
+          status.textContent = "✅ Шум удалён! Вы можете скачать файл:";
+        }, 3000);
+      };
+      reader.readAsArrayBuffer(file);
     }
   </script>
 </body>
 </html>
-
-   
