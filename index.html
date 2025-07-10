@@ -4,34 +4,45 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NoiseGone - Очистка звука</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-      background-color: #f2f2f2;
-    }
-    h1 {
-      color: #333;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #e1bee7);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
     }
     .box {
       background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      display: inline-block;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+      text-align: center;
+      width: 320px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #666;
+      font-size: 14px;
     }
     input[type="file"] {
       margin: 20px 0;
     }
     button {
-      padding: 10px 20px;
+      padding: 12px 24px;
       border: none;
       background-color: #4CAF50;
       color: white;
       font-size: 16px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
     button:hover {
       background-color: #45a049;
@@ -41,10 +52,26 @@
       font-weight: bold;
       color: #555;
     }
+    #spinner {
+      font-size: 24px;
+      display: none;
+      animation: spin 1s linear infinite;
+      margin-top: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     #downloadBtn {
       display: none;
       margin-top: 20px;
+      padding: 10px 18px;
       background-color: #007bff;
+      color: white;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background-color 0.3s;
     }
     #downloadBtn:hover {
       background-color: #0056b3;
@@ -58,6 +85,7 @@
     <input type="file" id="fileInput" accept="audio/*" />
     <br />
     <button onclick="simulateProcessing()">Очистить шум</button>
+    <div id="spinner">🔄</div>
     <div id="status"></div>
     <a id="downloadBtn" download="cleaned_audio.mp3">⬇️ Скачать очищенный файл</a>
   </div>
@@ -66,6 +94,7 @@
     function simulateProcessing() {
       const fileInput = document.getElementById('fileInput');
       const status = document.getElementById('status');
+      const spinner = document.getElementById('spinner');
       const downloadBtn = document.getElementById('downloadBtn');
 
       if (!fileInput.files.length) {
@@ -74,7 +103,8 @@
       }
 
       const file = fileInput.files[0];
-      status.textContent = "🔄 Идёт обработка файла...";
+      status.textContent = "Идёт обработка...";
+      spinner.style.display = "inline-block";
       downloadBtn.style.display = "none";
 
       const reader = new FileReader();
@@ -85,7 +115,8 @@
           downloadBtn.href = url;
           downloadBtn.download = "cleaned_" + file.name;
           downloadBtn.style.display = "inline-block";
-          status.textContent = "✅ Шум удалён! Вы можете скачать файл:";
+          status.textContent = "✅ Шум удалён!";
+          spinner.style.display = "none";
         }, 3000);
       };
       reader.readAsArrayBuffer(file);
