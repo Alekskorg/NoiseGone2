@@ -1,0 +1,4 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="NoiseGone logo">
+  <rect width="64" height="64" rx="16" fill="#4660ee"/>
+  <path d="M18 48V16M26 56V8M34 44V20M42 56V8M50 48V16" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+</svg>
