@@ -2,10 +2,10 @@
   "version": 2,
   "regions": ["fra1"],
   "functions": {
-    "api/clean.js": {
-      "runtime": "nodejs20.x",
-      "memory": 1024,
+    "api/*.js": {
+      "memory": 1536,
       "maxDuration": 60
     }
   }
 }
+
