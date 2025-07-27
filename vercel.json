@@ -1,12 +1,12 @@
 {
-  "runtime": "nodejs20.x",
-  "includeFiles": [
-    "node_modules/ffmpeg-static/**"
-  ],
   "functions": {
     "api/clean.js": {
+      "runtime": "nodejs20.x",
       "memory": 1536,
       "maxDuration": 60
     }
-  }
+  },
+  "includeFiles": [
+    "node_modules/ffmpeg-static/**"
+  ]
 }
