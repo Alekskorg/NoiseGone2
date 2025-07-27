@@ -1,100 +1,64 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NoiseGone — очистка аудио от шума</title>
-  <meta name="description" content="NoiseGone — быстрый онлайн‑инструмент для удаления фона и шума из аудиозаписей. Бесплатно до 5 минут в день." />
-  <link rel="icon" href="favicon.ico" />
+  <title>NoiseGone — очистка шума из аудио</title>
+  <meta name="description" content="NoiseGone — удаление фонового шума из аудио онлайн. Подкасты, интервью, озвучка, полевые записи. Бесплатно до 5 минут в день." />
+  <link rel="icon" href="/favicon.ico">
   <style>
-    :root{
-      --bg1:#eef6ff;
-      --bg2:#f2eafe;
-      --card:#fff;
-      --txt:#111;
-      --muted:#555;
-      --brand:#2563eb;
-      --ok:#2fae66;
-      --line:#d9e2f2;
-    }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;display:flex;align-items:center;justify-content:center;
-      background:radial-gradient(1200px 800px at 10% -10%, var(--bg1), transparent 70%),
-                 radial-gradient(1200px 800px at 110% 110%, var(--bg2), transparent 70%),
-                 #f7f9ff;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--txt);
+      background:radial-gradient(1200px 1200px at 20% 10%, #eaf5ff 0, #f2eaff 60%, #f6f7fb 100%);
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#0f172a;
     }
     .card{
-      width:min(92vw,680px);
-      background:var(--card);
-      border-radius:22px;
-      box-shadow:0 20px 60px rgba(0,0,0,.08);
-      padding:28px 28px 26px;
-      text-align:center;
-      position:relative;
+      width:min(92vw,560px); background:#fff; border-radius:20px; padding:28px 28px 22px;
+      box-shadow:0 20px 60px rgba(2,6,23,.08); position:relative; text-align:center;
     }
     .lang{
-      position:absolute;right:14px;top:12px;border:0;
-      background:#f4f6fb; padding:8px 10px; border-radius:12px;
-      cursor:pointer; font-weight:700;
-      box-shadow:0 2px 4px rgba(0,0,0,.06);
+      position:absolute; top:14px; right:14px; border:0; background:#f8fafc; color:#0f172a;
+      border-radius:12px; padding:6px 12px; font-weight:600; cursor:pointer; box-shadow:0 2px 4px rgba(2,6,23,.06);
     }
-    .logo{width:130px;display:block;margin:6px auto 6px;opacity:.95}
-    h1{margin:4px 0 6px;font-size:40px;letter-spacing:.3px}
-    .desc{margin:0 0 18px;color:var(--muted);font-size:18px}
-
-    .modes{display:flex;gap:10px;justify-content:center;margin:0 0 14px;flex-wrap:wrap}
+    .logo{width:110px; display:block; margin:8px auto 10px}
+    h1{margin:4px 0 8px; font-size:34px; letter-spacing:.2px}
+    .desc{margin:0 0 18px; color:#475569; font-size:16px}
+    .modes{display:flex; gap:10px; justify-content:center; margin:0 0 12px; flex-wrap:wrap}
     .modes button{
-      padding:9px 14px;border-radius:12px;border:1px solid #dbe2f1;
-      background:#fff;cursor:pointer;min-width:110px
+      padding:8px 14px; border:1px solid #cbd5e1; background:#fff; border-radius:10px; cursor:pointer;
+      color:#0f172a; font-weight:600;
     }
-    .modes button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
-
+    .modes button.active{background:#2563eb; color:#fff; border-color:#2563eb}
     .drop{
-      border:2px dashed #bcd0f6;border-radius:16px;padding:18px 14px; margin:8px 0 14px;
-      cursor:pointer; transition:.15s; min-height:96px;
-      display:flex;align-items:center;justify-content:center;flex-direction:column; gap:8px;
-      background:#fcfdff;
+      border:2px dashed #94a3b8; border-radius:14px; padding:18px; margin:12px 0 16px; cursor:pointer;
+      transition:background .15s, border-color .15s;
     }
-    .drop.hover{background:#f3f8ff;border-color:var(--brand)}
-    .fileline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
-    .fname{max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .fsize{color:#777;font-size:12px}
-    .hintTop{font-weight:600}
-    .hintSub{color:#666;font-size:13px}
-
-    .actions{display:flex;gap:10px;justify-content:center;align-items:center;margin:4px 0 10px}
-    .btn{border:0;border-radius:999px;padding:12px 18px;font-size:16px;cursor:pointer}
-    .btn-primary{background:var(--ok);color:#fff;min-width:260px}
-    .btn-primary:disabled{opacity:.55;cursor:not-allowed}
-    .btn-secondary{background:#eef1f7;color:#222}
-
-    .barwrap{height:8px;background:#ecf1fb;border-radius:6px;overflow:hidden;margin:8px 0 10px;display:none}
-    .bar{height:100%;width:0;background:var(--ok);transition:width .18s ease}
-
-    .status{min-height:22px;font-size:14px}
-    .status .err{color:#c62828}
-    .download{display:none;margin-top:6px}
-    .download a{color:var(--brand);font-weight:700;text-decoration:none}
-
-    .small{font-size:13px;color:#666;margin-top:12px}
-    @media (max-width:540px){
-      h1{font-size:32px}
-      .btn-primary{min-width:200px}
-      .logo{width:110px}
-    }
+    .drop.hover{background:#f1f5f9; border-color:#2563eb}
+    .file-line{display:flex; align-items:center; gap:10px; justify-content:center; color:#0f172a; font-weight:600}
+    .file-name{max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .file-size{color:#64748b; font-size:13px; font-weight:500}
+    .hint-top{font-weight:700; margin-bottom:4px}
+    .hint-sub{color:#64748b; font-size:13px}
+    .btn{display:inline-block; border:0; border-radius:999px; padding:14px 18px; font-size:16px; cursor:pointer}
+    #processBtn{width:100%; background:#22c55e; color:#fff; font-weight:800; margin:6px 0 10px}
+    #processBtn:disabled{opacity:.6; cursor:not-allowed}
+    #newBtn{display:inline-block; background:#eef2f7; margin-bottom:6px}
+    .bar-wrap{height:10px; background:#e2e8f0; border-radius:8px; overflow:hidden; margin:8px 0 4px; display:none}
+    .bar{height:100%; width:0; background:#22c55e; transition:width .2s}
+    .status{min-height:22px; font-size:14px; color:#0f172a}
+    .status .err{color:#dc2626}
+    #download{display:none; margin-top:6px}
+    #download a{color:#2563eb; font-weight:800; text-decoration:none}
+    .small{font-size:13px; color:#64748b; margin-top:10px}
+    .dim{opacity:.45}
   </style>
-
-  <!-- FFmpeg UMD + ядро через jsDelivr (без CORS‑проблем) -->
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
 </head>
 <body>
-  <main class="card">
-    <button id="lang" class="lang">EN</button>
-    <img class="logo" src="logo.png" alt="NoiseGone logo" />
+  <div class="card">
+    <button class="lang" id="langBtn">EN</button>
+    <img class="logo" src="/logo.png" alt="NoiseGone">
     <h1>NoiseGone</h1>
     <p class="desc" id="desc">Загрузите аудиофайл, и мы удалим шум</p>
 
@@ -105,269 +69,194 @@
       <button data-preset="field">Field</button>
     </div>
 
-    <div id="drop" class="drop" role="button" tabindex="0" aria-label="file drop">
-      <div class="hintTop" id="hintTop">Перетащите аудио сюда или нажмите, чтобы выбрать</div>
-      <div class="hintSub" id="hintSub">Поддерживаемые: WAV, MP3, M4A (до ~50 МБ)</div>
+    <div id="drop" class="drop" role="button" tabindex="0" aria-label="file area">
+      <div class="hint-top" id="hintTop">Перетащите аудио сюда или нажмите, чтобы выбрать</div>
+      <div class="hint-sub" id="hintSub">Поддерживаемые: WAV, MP3, M4A (до ~50 МБ)</div>
     </div>
-    <input id="file" type="file" accept="audio/*" hidden />
+    <input id="file" type="file" accept="audio/*" style="display:none"/>
 
-    <div class="actions">
-      <button id="process" class="btn btn-primary" disabled>Очистить шум</button>
-      <button id="newfile" class="btn btn-secondary" style="display:none">Новый файл</button>
+    <div style="display:flex; gap:10px; justify-content:center; align-items:center;">
+      <button id="newBtn" class="btn">Новый файл</button>
+      <button id="processBtn" class="btn">Очистить шум</button>
     </div>
 
-    <div class="barwrap" id="barWrap"><div class="bar" id="bar"></div></div>
+    <div class="bar-wrap" id="barWrap"><div class="bar" id="bar"></div></div>
     <div class="status" id="status"></div>
-    <div class="download" id="download"><a id="dl" href="#" download="cleaned.mp3">Скачать очищенный файл</a></div>
 
+    <div id="download"><a id="dl" href="#" download="cleaned.mp3">Скачать очищенный файл</a></div>
     <p class="small" id="plan">Бесплатно — до 5 минут/день. Для больших объёмов будет поминутная оплата.</p>
-  </main>
+  </div>
 
-<script>
-(() => {
-  // ----- i18n -----
-  const T = {
-    ru: {
-      desc: 'Загрузите аудиофайл, и мы удалим шум',
-      hintTop: 'Перетащите аудио сюда или нажмите, чтобы выбрать',
-      hintSub: 'Поддерживаемые: WAV, MP3, M4A (до ~50 МБ)',
-      clean: 'Очистить шум',
-      newFile: 'Новый файл',
-      free: 'Бесплатно — до 5 минут/день. Для больших объёмов будет поминутная оплата.',
-      loadingEngine: 'Загрузка аудиодвижка… (может занять 10–20 сек)',
-      preparing: 'Подготовка…',
-      processing: 'Идёт обработка…',
-      done: 'Готово! Нажмите, чтобы скачать.',
-      download: 'Скачать очищенный файл',
-      netErr: 'Сетевая ошибка',
-      genErr: 'Ошибка обработки'
-    },
-    en: {
-      desc: "Upload an audio file and we'll remove the noise",
-      hintTop: 'Drag & drop audio here or click to choose',
-      hintSub: 'Supported: WAV, MP3, M4A (up to ~50 MB)',
-      clean: 'Clean noise',
-      newFile: 'New file',
-      free: 'Free — up to 5 minutes/day. Large volume billed per minute.',
-      loadingEngine: 'Loading audio engine… (may take 10–20s)',
-      preparing: 'Preparing…',
-      processing: 'Processing…',
-      done: 'Done! Click to download.',
-      download: 'Download cleaned file',
-      netErr: 'Network error',
-      genErr: 'Processing error'
-    }
-  };
-  let lang = 'ru';
-  let preset = 'podcast';
-  let fileObj = null;
-  let outURL = null;
-
-  // ----- DOM -----
-  const $ = id => document.getElementById(id);
-  const langBtn = $('lang');
-  const desc = $('desc');
-  const hintTop = $('hintTop');
-  const hintSub = $('hintSub');
-  const drop = $('drop');
-  const file = $('file');
-  const processBtn = $('process');
-  const newBtn = $('newfile');
-  const barWrap = $('barWrap');
-  const bar = $('bar');
-  const status = $('status');
-  const downloadWrap = $('download');
-  const dl = $('dl');
-  const plan = $('plan');
-
-  const modeBtns = [...document.querySelectorAll('#modes button')];
-  modeBtns.forEach(b => b.addEventListener('click', () => {
-    modeBtns.forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    preset = b.dataset.preset || 'podcast';
-  }));
-
-  function applyLang(){
-    const L = T[lang];
-    langBtn.textContent = lang === 'ru' ? 'EN' : 'RU';
-    desc.textContent = L.desc;
-    hintTop.textContent = L.hintTop;
-    hintSub.textContent = L.hintSub;
-    processBtn.textContent = L.clean;
-    newBtn.textContent = L.newFile;
-    plan.textContent = L.free;
-    dl.textContent = L.download;
-  }
-  langBtn.addEventListener('click', ()=>{ lang = (lang==='ru' ? 'en' : 'ru'); applyLang(); });
-
-  // ----- FFmpeg init (через jsDelivr UMD) -----
-  const { createFFmpeg, fetchFile } = window.FFmpeg;
-  const ffmpeg = createFFmpeg({
-    log: false,
-    corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js'
-  });
-  let ffmpegReady = false;
-
-  async function ensureFFmpeg(){
-    if (ffmpegReady) return;
-    status.textContent = T[lang].loadingEngine;
-    barWrap.style.display = 'block';
-    bar.style.width = '15%';
-    ffmpeg.setProgress(({ ratio }) => {
-      // во время загрузки и инициализации ratio идёт от 0..1
-      const p = Math.min(90, Math.floor(ratio * 90));
-      bar.style.width = p + '%';
-    });
-    try{
-      await ffmpeg.load();
-      ffmpegReady = true;
-      bar.style.width = '0%';
-      barWrap.style.display = 'none';
-      status.textContent = '';
-    }catch(e){
-      status.innerHTML = `<span class="err">${T[lang].netErr}: ${e?.message || e}</span>`;
-      throw e;
-    }
-  }
-
-  // ----- helpers -----
-  function resetUI(keepLang=true){
-    if (outURL) { URL.revokeObjectURL(outURL); outURL=null; }
-    downloadWrap.style.display = 'none';
-    newBtn.style.display = 'none';
-    processBtn.disabled = true;
-    status.textContent = '';
-    bar.style.width='0%';
-    barWrap.style.display = 'none';
-    if (!fileObj) {
-      hintTop.textContent = T[lang].hintTop;
-      hintSub.textContent = T[lang].hintSub;
-      drop.innerHTML = `<div class="hintTop">${hintTop.textContent}</div><div class="hintSub">${hintSub.textContent}</div>`;
-    }
-    if (keepLang) applyLang();
-  }
-  function showFileInfo() {
-    const name = fileObj?.name || '';
-    const size = (fileObj?.size || 0);
-    const units = ['B','KB','MB'];
-    let v=size, i=0; while(v>=1024 && i<units.length-1) { v/=1024; i++; }
-    const human = v ? `${v.toFixed(1)} ${units[i]}` : '';
-    drop.innerHTML = `
-      <div class="fileline">
-        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="${getComputedStyle(document.documentElement).getPropertyValue('--brand')||'#2563eb'}" d="M12 3l8 6v12H4V9l8-6zm0 2.3L6 10v9h12v-9l-6-4.7z"/></svg>
-        <span class="fname" title="${name}">${name}</span>
-        <span class="fsize">(${human})</span>
-      </div>
-      <div class="hintSub">${T[lang].hintSub}</div>
-    `;
-  }
-
-  // ----- file choose / DnD -----
-  drop.addEventListener('click', ()=> file.click());
-  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('hover'); });
-  drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
-  drop.addEventListener('drop', e => {
-    e.preventDefault(); drop.classList.remove('hover');
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      fileObj = e.dataTransfer.files[0];
-      showFileInfo();
-      processBtn.disabled = false;
-      newBtn.style.display = 'inline-block';
-    }
-  });
-  file.addEventListener('change', () => {
-    if (file.files[0]) {
-      fileObj = file.files[0];
-      showFileInfo();
-      processBtn.disabled = false;
-      newBtn.style.display = 'inline-block';
-    }
-  });
-
-  // ----- processing (в браузере) -----
-  processBtn.addEventListener('click', async () => {
-    try{
-      if (!fileObj) return;
-      await ensureFFmpeg();
-
-      // ограничения на размер для веб‑версии
-      if (fileObj.size > 55 * 1024 * 1024) { // ~55MB
-        status.innerHTML = `<span class="err">Файл слишком большой для браузерной обработки (&gt; 55MB).</span>`;
-        return;
+  <script>
+  (function(){
+    // --- Тексты RU/EN ---
+    const T = {
+      ru:{
+        desc:'Загрузите аудиофайл, и мы удалим шум',
+        hintTop:'Перетащите аудио сюда или нажмите, чтобы выбрать',
+        hintSub:'Поддерживаемые: WAV, MP3, M4A (до ~50 МБ)',
+        clean:'Очистить шум', newFile:'Новый файл', free:'Бесплатно — до 5 минут/день. Для больших объёмов будет поминутная оплата.',
+        processing:'Идёт обработка…', done:'Готово! Нажмите, чтобы скачать.',
+        network:'Сетевая ошибка', error:'Ошибка обработки',
+        bigFile:'Файл слишком большой (лимит ~50 МБ).', noFile:'Сначала выберите файл.',
+        tooLong:'Слишком длинно для бесплатного режима (макс. 5 минут).',
+        timeout:'Таймаут обработки. Попробуйте файл короче.'
+      },
+      en:{
+        desc:"Upload an audio file and we'll remove the noise",
+        hintTop:'Drag & drop audio here or click to choose',
+        hintSub:'Supported: WAV, MP3, M4A (up to ~50 MB)',
+        clean:'Clean noise', newFile:'New file', free:'Free — up to 5 minutes/day. Large volume billed per minute.',
+        processing:'Processing…', done:'Done! Click to download.',
+        network:'Network error', error:'Processing error',
+        bigFile:'File is too large (~50 MB limit).', noFile:'Please choose a file first.',
+        tooLong:'Too long for free tier (max 5 minutes).',
+        timeout:'Processing timeout. Try a shorter file.'
       }
+    };
 
-      // UI
-      processBtn.disabled = true;
-      downloadWrap.style.display = 'none';
-      status.textContent = T[lang].preparing;
-      barWrap.style.display = 'block';
-      bar.style.width = '5%';
+    let lang = (localStorage.getItem('ng_lang') || 'ru');
+    let preset = 'podcast';
+    let selectedFile = null;
 
-      // вход / выход
-      const inName = 'input.' + (fileObj.name.split('.').pop() || 'm4a').toLowerCase();
-      const outName = 'output.mp3';
+    const $ = id => document.getElementById(id);
+    const langBtn = $('langBtn'), desc=$('desc'), hintTop=$('hintTop'), hintSub=$('hintSub');
+    const processBtn=$('processBtn'), newBtn=$('newBtn');
+    const drop=$('drop'), file=$('file');
+    const barWrap=$('barWrap'), bar=$('bar'), statusEl=$('status'), dlWrap=$('download'), dl=$('dl'), plan=$('plan');
+    const modeBtns=[...document.querySelectorAll('.modes button')];
 
-      // записать входной файл в FS
-      ffmpeg.FS('writeFile', inName, await fetchFile(fileObj));
-
-      // пресеты фильтров
-      const filters = {
-        podcast : "highpass=f=100,afftdn=nf=-25,lowpass=f=12000,loudnorm=I=-16:TP=-1.5:LRA=9",
-        interview: "highpass=f=80,afftdn=nf=-30,lowpass=f=12000,loudnorm=I=-16:TP=-1.5:LRA=11",
-        voiceover: "highpass=f=100,afftdn=nf=-22,lowpass=f=12000,loudnorm=I=-16:TP=-1.5:LRA=9",
-        field   : "highpass=f=100,afftdn=nf=-35,lowpass=f=11000,loudnorm=I=-18:TP=-2:LRA=11"
-      };
-      const af = filters[preset] || filters.podcast;
-
-      status.textContent = T[lang].processing;
-      ffmpeg.setProgress(({ ratio }) => {
-        const p = Math.max(6, Math.min(100, Math.floor(ratio * 100)));
-        bar.style.width = p + '%';
-      });
-
-      // конвертация в mp3 192kbps с фильтрами
-      await ffmpeg.run(
-        '-i', inName,
-        '-af', af,
-        '-ar', '48000',
-        '-ac', '1',
-        '-c:a', 'libmp3lame',
-        '-b:a', '192k',
-        outName
-      );
-
-      const data = ffmpeg.FS('readFile', outName);
-      if (outURL) URL.revokeObjectURL(outURL);
-      outURL = URL.createObjectURL(new Blob([data.buffer], { type:'audio/mpeg' }));
-
-      dl.href = outURL;
-      dl.setAttribute('download', (fileObj.name.replace(/\.[^/.]+$/, '') || 'cleaned') + '_cleaned.mp3');
-      downloadWrap.style.display = 'block';
-      status.textContent = T[lang].done;
-      bar.style.width = '100%';
-      processBtn.disabled = false;
-    }catch(e){
-      console.error(e);
-      status.innerHTML = `<span class="err">${T[lang].genErr}: ${e?.message || e}</span>`;
-      processBtn.disabled = false;
-      barWrap.style.display='none';
+    function bytes(n){ const u=['B','KB','MB']; let i=0,v=n; while(v>=1024 && i<u.length-1){v/=1024;i++;} return v.toFixed(1)+' '+u[i]; }
+    function applyLang(){
+      const L=T[lang];
+      langBtn.textContent=(lang==='ru'?'EN':'RU');
+      desc.textContent=L.desc; hintTop.textContent=L.hintTop; hintSub.textContent=L.hintSub;
+      processBtn.textContent=L.clean; newBtn.textContent=L.newFile; plan.textContent=L.free; dl.textContent=(lang==='ru'?'Скачать очищенный файл':'Download cleaned file');
+      localStorage.setItem('ng_lang', lang);
+      if(!selectedFile){ drop.classList.remove('dim'); }
     }
-  });
+    langBtn.addEventListener('click', ()=>{ lang=(lang==='ru'?'en':'ru'); applyLang(); });
 
-  // новый файл
-  newBtn.addEventListener('click', () => {
-    file.value = '';
-    fileObj = null;
-    resetUI();
-  });
+    modeBtns.forEach(b=>{
+      b.addEventListener('click', ()=>{
+        modeBtns.forEach(x=>x.classList.remove('active'));
+        b.classList.add('active'); preset=b.dataset.preset||'podcast';
+      });
+    });
 
-  // старт
-  applyLang();
-  resetUI();
-})();
-</script>
+    // Открытие системного диалога выбора
+    function openPicker(){
+      if(typeof file.showPicker==='function') file.showPicker(); else file.click();
+    }
+    drop.addEventListener('click', openPicker);
+    drop.addEventListener('dragover', e=>{e.preventDefault(); drop.classList.add('hover');});
+    drop.addEventListener('dragleave', ()=>drop.classList.remove('hover'));
+    drop.addEventListener('drop', e=>{
+      e.preventDefault(); drop.classList.remove('hover');
+      if(e.dataTransfer.files && e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+    });
+    file.addEventListener('change', ()=>{ if(file.files[0]) setFile(file.files[0]); });
+
+    function setFile(f){
+      selectedFile=f;
+      drop.innerHTML = `
+        <div class="file-line">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#2563eb" d="M12 3l8 6v12H4V9l8-6zm0 2.3L6 10v9h12v-9l-6-4.7z"/></svg>
+          <span class="file-name" title="${selectedFile.name}">${selectedFile.name}</span>
+          <span class="file-size">(${bytes(selectedFile.size)})</span>
+        </div>
+        <div class="hint-sub">${T[lang].hintSub}</div>`;
+      drop.classList.add('dim');
+      processBtn.disabled=false; dlWrap.style.display='none'; statusEl.textContent='';
+      bar.style.width='0%'; barWrap.style.display='none';
+    }
+
+    // Новый файл
+    newBtn.addEventListener('click', ()=>{
+      selectedFile=null; file.value='';
+      // вернуть подсказку
+      drop.classList.remove('dim');
+      drop.innerHTML = `<div class="hint-top">${T[lang].hintTop}</div><div class="hint-sub">${T[lang].hintSub}</div>`;
+      processBtn.disabled=true; statusEl.textContent='';
+      dlWrap.style.display='none'; barWrap.style.display='none'; bar.style.width='0%';
+      openPicker();
+    });
+
+    // Обработка
+    processBtn.disabled=true;
+    processBtn.addEventListener('click', ()=>{
+      if(!selectedFile){ statusEl.innerHTML=`<span class="err">${T[lang].noFile}</span>`; return; }
+      if(selectedFile.size>50*1024*1024){ statusEl.innerHTML=`<span class="err">${T[lang].bigFile}</span>`; return; }
+
+      processBtn.disabled=true;
+      statusEl.textContent=T[lang].processing;
+      dlWrap.style.display='none';
+      barWrap.style.display='block'; bar.style.width='0%';
+
+      const form=new FormData();
+      form.append('file', selectedFile);
+      form.append('preset', preset);
+
+      let fallbackTimer=null, fallbackVal=52;
+      const startFallback=()=>{ stopFallback(); fallbackVal=Math.max(fallbackVal,52);
+        fallbackTimer=setInterval(()=>{ if(fallbackVal<96){ fallbackVal+=1; bar.style.width=fallbackVal+'%'; } }, 300);
+      };
+      const stopFallback=()=>{ if(fallbackTimer){ clearInterval(fallbackTimer); fallbackTimer=null; }};
+
+      const xhr=new XMLHttpRequest();
+      xhr.open('POST','/api/clean');
+      xhr.responseType='blob';
+      xhr.timeout=240000; // 4 минуты: запас, на Vercel maxDuration мы ограничим до 60 c на сервере
+
+      xhr.upload.onprogress=(e)=>{ if(e.lengthComputable){ const p=Math.round((e.loaded/e.total)*50); bar.style.width=p+'%'; if(p>=48) startFallback(); } };
+      xhr.upload.onload=startFallback;
+      xhr.onprogress=(e)=>{ if(e.lengthComputable){ stopFallback(); const p=50+Math.round((e.loaded/e.total)*50); bar.style.width=p+'%'; } };
+
+      xhr.onload=()=>{
+        stopFallback(); bar.style.width='100%'; processBtn.disabled=false;
+
+        if(xhr.status!==200){
+          // Попробуем прочитать JSON-ошибку
+          const ct=xhr.getResponseHeader('Content-Type')||'';
+          if(ct.includes('application/json')){
+            const reader=new FileReader();
+            reader.onload=()=>{ try{ const j=JSON.parse(reader.result||'{}'); statusEl.innerHTML=`<span class="err">${j.message||T[lang].error}</span>`; }catch{ statusEl.innerHTML=`<span class="err">${T[lang].error} (${xhr.status})</span>`; } };
+            reader.readAsText(xhr.response);
+          } else {
+            statusEl.innerHTML=`<span class="err">${T[lang].error} (${xhr.status})</span>`;
+          }
+          return;
+        }
+
+        const type=xhr.getResponseHeader('Content-Type')||'';
+        // Сервер гарантирует бинарный поток; но на всякий случай:
+        if(type.includes('application/json')){
+          const r=new FileReader();
+          r.onload=()=>{ try{ const j=JSON.parse(r.result||'{}'); statusEl.innerHTML=`<span class="err">${j.message||T[lang].error}</span>`; }catch{ statusEl.innerHTML=`<span class="err">${T[lang].error}</span>`; } };
+          r.readAsText(xhr.response); return;
+        }
+        const cd=xhr.getResponseHeader('Content-Disposition')||'';
+        const m=cd.match(/filename\*?=(?:UTF-8''|")?([^\";]+)/i);
+        const fname=m?decodeURIComponent(m[1]):'cleaned.mp3';
+
+        const url=URL.createObjectURL(xhr.response);
+        dl.href=url; dl.setAttribute('download', fname);
+        dlWrap.style.display='block'; statusEl.textContent=T[lang].done;
+      };
+      xhr.onerror=()=>{ stopFallback(); processBtn.disabled=false; statusEl.innerHTML=`<span class="err">${T[lang].network}</span>`; };
+      xhr.ontimeout=()=>{ stopFallback(); processBtn.disabled=false; statusEl.innerHTML=`<span class="err">${T[lang].timeout}</span>`; };
+
+      xhr.send(form);
+    });
+
+    // Инициализация
+    applyLang();
+    window.addEventListener('error', (e)=>{ statusEl.innerHTML = `<span class="err">JS: ${(e.error?.message||e.message||'error')}</span>`; });
+  })();
+  </script>
 </body>
 </html>
+
 
 
 
