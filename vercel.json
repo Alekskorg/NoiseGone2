@@ -5,8 +5,5 @@
       "memory": 1536,
       "maxDuration": 60
     }
-  },
-  "includeFiles": [
-    "node_modules/ffmpeg-static/**"
-  ]
+  }
 }
