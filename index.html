@@ -7,14 +7,74 @@
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #d8eefe, #ebd4f6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+    body {<div style="min-height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(to right,#e0ecff,#f5f5ff);padding:20px;">
+  <div ondrop="handleDrop(event)" ondragover="event.preventDefault()"
+    style="background:#fff;border-radius:20px;padding:40px;box-shadow:0 8px 24px rgba(0,0,0,0.1);text-align:center;max-width:400px;width:100%;">
+    
+    <img src="logo.png" alt="NoiseGone" style="height:50px;margin-bottom:20px;" />
+    <h2>NoiseGone</h2>
+    <p style="color:#666;">Загрузите аудиофайл, и мы удалим шум</p>
+
+    <input type="file" id="fileInput" accept="audio/*" onchange="handleFileChange()" style="margin:15px 0;" />
+    <div id="fileName" style="margin-bottom:10px;"></div>
+
+    <button onclick="startProcessing()" id="processBtn"
+      style="padding:10px 20px;background:#28a745;color:#fff;border:none;border-radius:10px;cursor:pointer;">
+      Очистить шум
+    </button>
+
+    <div id="progressContainer" style="display:none;margin-top:20px;">
+      <div style="height:6px;background:#ddd;border-radius:10px;overflow:hidden;">
+        <div id="progressBar" style="width:0%;height:100%;background:#28a745;"></div>
+      </div>
+    </div>
+
+    <div id="doneMessage" style="margin-top:20px;color:green;display:none;">
+      ✅ Готово! <a href="#">Скачать результат</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  let selectedFile = null;
+
+  function handleFileChange() {
+    const input = document.getElementById('fileInput');
+    if (input.files.length > 0) {
+      selectedFile = input.files[0];
+      document.getElementById('fileName').innerText = "📎 " + selectedFile.name;
+      document.getElementById('doneMessage').style.display = "none";
+    }
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    selectedFile = e.dataTransfer.files[0];
+    document.getElementById('fileInput').files = e.dataTransfer.files;
+    document.getElementById('fileName').innerText = "📎 " + selectedFile.name;
+    document.getElementById('doneMessage').style.display = "none";
+  }
+
+  function startProcessing() {
+    if (!selectedFile) return;
+
+    document.getElementById('progressContainer').style.display = "block";
+    document.getElementById('progressBar').style.width = "0%";
+    document.getElementById('doneMessage').style.display = "none";
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 2;
+      document.getElementById('progressBar').style.width = progress + "%";
+
+      if (progress >= 100) {
+        clearInterval(interval);
+        document.getElementById('doneMessage').style.display = "block";
+      }
+    }, 60);
+  }
+</script>
+
     }
 
     .container {
