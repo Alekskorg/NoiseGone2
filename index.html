@@ -259,7 +259,7 @@
         xhr = new XMLHttpRequest();
         xhr.open('POST', '/api/clean');
         xhr.responseType = 'blob';
-        xhr.timeout = 28000; // 28с ожидания сети (сервер всё равно ограничен лимитом)
+        xhr.timeout = 120000; // 28с ожидания сети (сервер всё равно ограничен лимитом)
 
         // аплоад (0–50%)
         xhr.upload.onprogress = (e)=>{
