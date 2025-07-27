@@ -1,202 +1,261 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NoiseGone - Очистка звука</title>
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NoiseGone — Очистка звука</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    body {<div style="min-height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(to right,#e0ecff,#f5f5ff);padding:20px;">
-  <div ondrop="handleDrop(event)" ondragover="event.preventDefault()"
-    style<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-  }
-</style>
-="background:#fff;border-radius:20px;padding:40px;box-shadow:0 8px 24px rgba(0,0,0,0.1);text-align:center;max-width:400px;width:100%;">
-    
-    <img src="logo.png" alt="NoiseGone" style="height:50px;margin-bottom:20px;" />
-    <h2>NoiseGone</h2>
-    <p style="color:#666;">Загрузите аудиофайл, и мы удалим шум</p>
-
-    <input type="file" id="fileInput" accept="audio/*" onchange="handleFileChange()" style="margin:15px 0;" />
-    <div id="fileName" style="margin-bottom:10px;"></div>
-
-    <button onclick="startProcessing()" id="processBtn"
-      style="padding:10px 20px;background:#28a745;color:#fff;border:none;border-radius:10px;cursor:pointer;">
-      Очистить шум
-    </button>
-
-    <div id="progressContainer" style="display:none;margin-top:20px;">
-      <div style="height:6px;background:#ddd;border-radius:10px;overflow:hidden;">
-        <div id="progressBar" style="width:0%;height:100%;background:#28a745;"></div>
-      </div>
-    </div>
-
-    <div id="doneMessage" style="margin-top:20px;color:green;display:none;">
-      ✅ Готово! <a href="#">Скачать результат</a>
-    </div>
-  </div>
-</div>
-
-<script>
-  let selectedFile = null;
-
-  function handleFileChange() {
-    const input = document.getElementById('fileInput');
-    if (input.files.length > 0) {
-      selectedFile = input.files[0];
-      document.getElementById('fileName').innerText = "📎 " + selectedFile.name;
-      document.getElementById('doneMessage').style.display = "none";
+    :root {
+      --bg1: #e0ecff;
+      --bg2: #f5f5ff;
+      --brand: #28a745;
+      --text: #222;
+      --muted: #666;
+      --card: #ffffff;
+      --border: #d0d7de;
     }
-  }
-
-  function handleDrop(e) {
-    e.preventDefault();
-    selectedFile = e.dataTransfer.files[0];
-    document.getElementById('fileInput').files = e.dataTransfer.files;
-    document.getElementById('fileName').innerText = "📎 " + selectedFile.name;
-    document.getElementById('doneMessage').style.display = "none";
-  }
-
-  function startProcessing() {
-    if (!selectedFile) return;
-
-    document.getElementById('progressContainer').style.display = "block";
-    document.getElementById('progressBar').style.width = "0%";
-    document.getElementById('doneMessage').style.display = "none";
-
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 2;
-      document.getElementById('progressBar').style.width = progress + "%";
-
-      if (progress >= 100) {
-        clearInterval(interval);
-        document.getElementById('doneMessage').style.display = "block";
-      }
-    }, 60);
-  }
-</script>
-
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(to right, var(--bg1), var(--bg2));
+      padding: 24px;
+      color: var(--text);
     }
-
     .container {
-      background: white;
-      padding: 40px;
-      border-radius: 2rem;
-      box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
+      background: var(--card);
+      width: min(440px, 100%);
+      border-radius: 20px;
+      padding: 32px 28px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
       position: relative;
+      text-align: center;
     }
-
-    .logo {
-      max-width: 120px;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-
-    p {
-      color: #666;
-      margin-bottom: 20px;
-    }
-
-    input[type="file"] {
-      margin-bottom: 20px;
-    }
-
-    button {
-      background-color: #34a853;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #2c8c46;
-    }
-
     .language-switcher {
-      position: absolute;
-      top: 20px;
-      right: 20px;
+      position: absolute; top: 14px; right: 14px;
+      border: 1px solid var(--border);
       background: #fff;
+      border-radius: 999px;
       padding: 6px 12px;
-      border-radius: 12px;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      user-select: none;
     }
+    .logo { height: 48px; margin-bottom: 12px; }
+    h1 { font-size: 24px; margin: 8px 0 4px; }
+    .desc { color: var(--muted); margin: 0 0 16px; }
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      cursor: pointer;
+      transition: .2s;
+    }
+    .dropzone:hover { background: #fafcff; }
+    .dropzone.dragover { background: #f3f7ff; border-color: #9bb6ff; }
+    .file-name { margin-top: 8px; font-size: 14px; color: #444; word-break: break-all; }
+    .btn {
+      margin-top: 14px;
+      background: var(--brand); color: #fff; border: none;
+      padding: 12px 18px; border-radius: 10px;
+      font-size: 16px; cursor: pointer;
+    }
+    .btn[disabled] { opacity: .6; cursor: not-allowed; }
+    .progress { display: none; margin-top: 16px; text-align: left; }
+    .progress-bar {
+      height: 6px; background: #ddd; border-radius: 10px; overflow: hidden;
+    }
+    .progress-bar > span {
+      display: block; height: 100%; width: 0%;
+      background: var(--brand); transition: width .2s ease;
+    }
+    .status { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+    .done { display: none; margin-top: 16px; color: #1f7a3c; }
+    .download { margin-left: 6px; text-decoration: none; }
   </style>
+</head>
+<body>
+  <div class="container">
+    <button class="language-switcher" type="button" aria-label="Switch language">EN</button>
+
+    <img src="logo.png" alt="NoiseGone" class="logo" />
+    <h1 data-i18n="heading">NoiseGone</h1>
+    <p class="desc" data-i18n="description">Загрузите аудиофайл, и мы удалим шум</p>
+
+    <label class="dropzone" id="dropzone" for="fileInput" aria-label="File drop area">
+      <strong id="chooseText" data-i18n="chooseFile">Перетащите аудио сюда или нажмите, чтобы выбрать</strong>
+      <div class="file-name" id="fileName"></div>
+      <input type="file" id="fileInput" accept="audio/*" hidden />
+    </label>
+
+    <button class="btn" id="processBtn" type="button" data-i18n="button" disabled>Очистить шум</button>
+
+    <div class="progress" id="progressContainer" aria-live="polite">
+      <div class="progress-bar"><span id="progressFill"></span></div>
+      <p class="status" id="status"></p>
+    </div>
+
+    <p class="done" id="doneMessage">
+      ✅ <span data-i18n="done">Шум удалён!</span>
+      <a id="downloadLink" class="download" href="#" download>
+        ⬇️ <span data-i18n="download">Скачать очищенный файл</span>
+      </a>
+    </p>
+  </div>
+
   <script>
-    const translations = {
+    // i18n
+    const T = {
       ru: {
         heading: "NoiseGone",
         description: "Загрузите аудиофайл, и мы удалим шум",
-        chooseFile: "Выберите файл",
+        chooseFile: "Перетащите аудио сюда или нажмите, чтобы выбрать",
         button: "Очистить шум",
         processing: "Идёт обработка...",
-        done: "✅ Шум удалён!",
-        download: "⬇️ Скачать очищенный файл"
+        done: "Шум удалён!",
+        download: "Скачать очищенный файл",
+        switch: "EN"
       },
       en: {
         heading: "NoiseGone",
         description: "Upload an audio file and we'll remove the noise",
-        chooseFile: "Choose file",
+        chooseFile: "Drag & drop audio here or click to choose",
         button: "Clean noise",
         processing: "Processing...",
-        done: "✅ Noise removed!",
-        download: "⬇️ Download cleaned file"
+        done: "Noise removed!",
+        download: "Download cleaned file",
+        switch: "RU"
       }
     };
 
-    let currentLang = 'ru';
+    let lang = "ru";
+    let selectedFile = null;
 
-    function switchLanguage() {
-      currentLang = currentLang === 'ru' ? 'en' : 'ru';
-      const t = translations[currentLang];
-      document.querySelector('h1').textContent = t.heading;
-      document.querySelector('p').textContent = t.description;
-      document.querySelector('button').textContent = t.button;
-      document.querySelector('.language-switcher').textContent = currentLang === 'ru' ? 'EN' : 'RU';
+    const els = {
+      switcher: document.querySelector(".language-switcher"),
+      heading: document.querySelector('[data-i18n="heading"]'),
+      desc: document.querySelector('[data-i18n="description"]'),
+      choose: document.getElementById("chooseText"),
+      input: document.getElementById("fileInput"),
+      dropzone: document.getElementById("dropzone"),
+      fileName: document.getElementById("fileName"),
+      btn: document.getElementById("processBtn"),
+      progress: document.getElementById("progressContainer"),
+      fill: document.getElementById("progressFill"),
+      status: document.getElementById("status"),
+      done: document.getElementById("doneMessage"),
+      download: document.getElementById("downloadLink")
+    };
+
+    function applyLang() {
+      const L = T[lang];
+      document.documentElement.lang = lang;
+      els.switcher.textContent = L.switch;
+      els.heading.textContent = L.heading;
+      els.desc.textContent = L.description;
+      els.choose.textContent = L.chooseFile;
+      els.btn.textContent = L.button;
+
+      // Если идёт обработка или завершено, обновим подписи
+      if (els.progress.style.display !== "none" && els.status.textContent) {
+        els.status.textContent = L.processing;
+      }
+      if (els.done.style.display !== "none") {
+        els.done.querySelector('[data-i18n="done"]').textContent = L.done;
+        els.download.querySelector('[data-i18n="download"]').textContent = L.download;
+      }
     }
 
-    function simulateProcessing() {
-      const status = document.getElementById('status');
-      const downloadBtn = document.getElementById('download');
-      status.textContent = translations[currentLang].processing;
-      downloadBtn.style.display = 'none';
-      setTimeout(() => {
-        status.textContent = translations[currentLang].done;
-        downloadBtn.style.display = 'inline-block';
-        downloadBtn.textContent = translations[currentLang].download;
-      }, 2000);
+    els.switcher.addEventListener("click", () => {
+      lang = lang === "ru" ? "en" : "ru";
+      applyLang();
+    });
+
+    // File handling
+    els.input.addEventListener("change", handleFileSelect);
+
+    function handleFileSelect() {
+      if (els.input.files && els.input.files.length) {
+        selectedFile = els.input.files[0];
+        els.fileName.textContent = "📎 " + selectedFile.name;
+        els.btn.disabled = false;
+        els.done.style.display = "none";
+      }
     }
+
+    // Drag & Drop
+    ["dragenter", "dragover"].forEach(ev => {
+      els.dropzone.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        els.dropzone.classList.add("dragover");
+      });
+    });
+    ["dragleave", "drop"].forEach(ev => {
+      els.dropzone.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        els.dropzone.classList.remove("dragover");
+      });
+    });
+    els.dropzone.addEventListener("drop", e => {
+      const files = e.dataTransfer.files;
+      if (files && files.length) {
+        selectedFile = files[0];
+        els.input.files = files; // синхронизируем с input
+        els.fileName.textContent = "📎 " + selectedFile.name;
+        els.btn.disabled = false;
+        els.done.style.display = "none";
+      }
+    });
+    els.dropzone.addEventListener("click", () => els.input.click());
+
+    // Processing simulation
+    els.btn.addEventListener("click", startProcessing);
+
+    function startProcessing() {
+      if (!selectedFile) return;
+
+      els.progress.style.display = "block";
+      els.status.textContent = T[lang].processing;
+      els.fill.style.width = "0%";
+      els.done.style.display = "none";
+
+      let p = 0;
+      const timer = setInterval(() => {
+        p += 3 + Math.random() * 4;
+        if (p >= 100) {
+          p = 100;
+          clearInterval(timer);
+          finishProcessing();
+        }
+        els.fill.style.width = p + "%";
+      }, 80);
+    }
+
+    function finishProcessing() {
+      // TODO: здесь вызовите свой backend и подставьте ссылку на реальный обработанный файл.
+      // Для демо — даём скачать исходник под новым именем.
+      const L = T[lang];
+      els.progress.style.display = "none";
+      els.done.style.display = "block";
+
+      const url = URL.createObjectURL(selectedFile);
+      const base = selectedFile.name.replace(/(\.[^.]*)?$/, "");
+      const ext = selectedFile.name.match(/\.[^.]+$/)?.[0] || ".wav";
+      els.download.href = url;
+      els.download.download = base + "_cleaned" + ext;
+
+      els.done.querySelector('[data-i18n="done"]').textContent = L.done;
+      els.download.querySelector('[data-i18n="download"]').textContent = L.download;
+    }
+
+    // Инициализация
+    applyLang();
   </script>
-</head>
-<body>
-  <div class="container">
-    <div class="language-switcher" onclick="switchLanguage()">EN</div>
-    <img src="logo.png" alt="NoiseGone" class="logo">
-    <h1>NoiseGone</h1>
-    <p>Загрузите аудиофайл, и мы удалим шум</p>
-    <input type="file" id="fileInput">
-    <br>
-    <button onclick="simulateProcessing()">Очистить шум</button>
-    <p id="status"></p>
-    <a id="download" href="#" download style="display:none;"></a>
-  </div>
 </body>
 </html>
+
+ 
