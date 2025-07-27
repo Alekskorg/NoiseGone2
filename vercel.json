@@ -1,11 +1,12 @@
 {
-  "version": 2,
-  "regions": ["fra1"],
+  "runtime": "nodejs20.x",
+  "includeFiles": [
+    "node_modules/ffmpeg-static/**"
+  ],
   "functions": {
-    "api/*.js": {
+    "api/clean.js": {
       "memory": 1536,
       "maxDuration": 60
     }
   }
 }
-
