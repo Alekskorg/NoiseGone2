@@ -1,4 +1,4 @@
-// api/clean.js
+// api/clean.js — Шаг A: супер-быстрый «смок-тест» (без фильтров)
 export const config = { api: { bodyParser: false } };
 
 import Busboy from 'busboy';
@@ -9,17 +9,6 @@ import ffmpegPath from 'ffmpeg-static';
 import { createWriteStream } from 'fs';
 import { readFile, unlink } from 'fs/promises';
 
-// максимально простые и быстрые фильтры, чтобы уложиться в 10s Hobby
-const PRESETS = {
-  podcast:  'highpass=f=100,lowpass=f=12000,afftdn=nr=15',
-  interview:'highpass=f=90,lowpass=f=12000,afftdn=nr=16',
-  voiceover:'highpass=f=80,lowpass=f=12000,afftdn=nr=17',
-  field:    'highpass=f=120,lowpass=f=11000,afftdn=nr=14'
-};
-
-// сколько секунд обрабатывать на Hobby (чтобы не упираться в таймаут)
-const HOBBY_SECONDS = 20;
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -27,22 +16,18 @@ export default async function handler(req, res) {
   }
 
   const inPath  = join(tmpdir(), `ng_in_${Date.now()}.wav`);
-  const outPath = join(tmpdir(), `ng_out_${Date.now()}.wav`); // WAV -> минимум CPU
-  let gotFile = false;
-  let preset = 'podcast';
+  const outPath = join(tmpdir(), `ng_out_${Date.now()}.wav`);
 
+  let gotFile = false;
   const busboy = Busboy({ headers: req.headers });
   const writePromise = new Promise((resolve, reject) => {
-    busboy.on('field', (name, val) => {
-      if (name === 'preset' && PRESETS[val]) preset = val;
-    });
-    busboy.on('file', (_name, fileStream) => {
+    busboy.on('file', (_name, file) => {
       gotFile = true;
       const ws = createWriteStream(inPath);
-      fileStream.pipe(ws);
+      file.pipe(ws);
       ws.on('finish', resolve);
       ws.on('error', reject);
-      fileStream.on('error', reject);
+      file.on('error', reject);
     });
     busboy.on('error', reject);
     busboy.on('finish', () => gotFile ? null : reject(new Error('No file uploaded')));
@@ -53,42 +38,31 @@ export default async function handler(req, res) {
   try {
     await writePromise;
 
-    // максимально быстрый пайплайн:
-    // - режем до 20 сек, переводим в моно и 32 кГц
-    // - простая цепочка фильтров для шумоподавления
-    const filter = PRESETS[preset];
+    // Максимально быстрый конвейер: отрезаем первые 6 секунд, моно, 32 кГц, WAV
     const args = [
       '-hide_banner', '-loglevel', 'error', '-nostats',
       '-y',
-      '-t', String(HOBBY_SECONDS),   // <= ключевая строка: ограничиваем длительность
+      '-t', '6',            // 6 секунд гарантированно успевают даже на самом слабом холодном старте
       '-i', inPath,
       '-ac', '1',
       '-ar', '32000',
-      '-af', filter,
-      '-c:a', 'pcm_s16le',          // WAV (почти не грузит CPU)
+      '-c:a', 'pcm_s16le',
       outPath
     ];
 
-    const child = spawn(ffmpegPath, args);
-    let stderrText = '';
-    child.stderr.on('data', d => { stderrText += d.toString(); });
+    const p = spawn(ffmpegPath, args);
+    let stderr = '';
+    p.stderr.on('data', d => { stderr += d.toString(); });
 
-    const code = await new Promise(resolve => child.on('close', resolve));
-
+    const code = await new Promise(r => p.on('close', r));
     if (code !== 0) {
-      console.error('FFmpeg error:', stderrText);
-      res.status(500).send(stderrText || 'Processing error');
-      try { await unlink(inPath); } catch {}
-      try { await unlink(outPath); } catch {}
-      return;
+      console.error(stderr);
+      return res.status(500).send(stderr || 'Processing error');
     }
 
     const data = await readFile(outPath);
     res.setHeader('Content-Type', 'audio/wav');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename*=UTF-8''${encodeURIComponent('cleaned.wav')}`
-    );
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''cleaned.wav`);
     res.status(200).send(data);
 
     try { await unlink(inPath); } catch {}
