@@ -86,7 +86,8 @@
         done:'Готово! Кликните, чтобы скачать.',
         downloading:'Скачать очищенный файл',
         error:'Ошибка обработки',
-        network:'Сетевая ошибка'
+        network:'Сетевая ошибка',
+        processing:'Идёт обработка…'
       },
       en:{
         desc:"Upload an audio file and we'll remove the noise",
@@ -98,7 +99,8 @@
         done:'Done! Click to download.',
         downloading:'Download cleaned file',
         error:'Processing error',
-        network:'Network error'
+        network:'Network error',
+        processing:'Processing…'
       }
     };
     let lang='ru';
@@ -115,10 +117,12 @@
       const L=T[lang];
       langBtn.textContent = (lang==='ru'?'EN':'RU');
       desc.textContent=L.desc;
-      drop.innerHTML = `
-        <div class="hint-top">${L.hintTop}</div>
-        <div class="hint-sub">${L.hintSub}</div>
-      `;
+      if(!selectedFile){
+        drop.innerHTML = `
+          <div class="hint-top">${L.hintTop}</div>
+          <div class="hint-sub">${L.hintSub}</div>
+        `;
+      }
       processBtn.textContent=L.clean;
       newBtn.textContent=L.newFile;
       plan.textContent=L.free;
@@ -133,18 +137,17 @@
 
     // -------- файл/дроп --------
     let selectedFile=null;
+    function bytesToSize(bytes){
+      const u=['B','KB','MB','GB'];let i=0;let v=bytes;
+      while(v>=1024&&i<u.length-1){v/=1024;i++;} return v.toFixed(1)+' '+u[i];
+    }
     function showFileInfo(){
       if(!selectedFile){applyLang();return;}
-      const size=(bytes=>{
-        const u=['B','KB','MB','GB'];let i=0;let v=bytes;
-        while(v>=1024&&i<u.length-1){v/=1024;i++;}
-        return v.toFixed(1)+' '+u[i];
-      })(selectedFile.size);
       drop.innerHTML=`
         <div class="file-line">
           <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#2563eb" d="M12 3l8 6v12H4V9l8-6zm0 2.3L6 10v9h12v-9l-6-4.7z"/></svg>
           <span class="file-name" title="${selectedFile.name}">${selectedFile.name}</span>
-          <span class="file-size">(${size})</span>
+          <span class="file-size">(${bytesToSize(selectedFile.size)})</span>
         </div>
         <div class="hint-sub">${T[lang].hintSub}</div>
       `;
@@ -158,7 +161,11 @@
     });
     file.addEventListener('change',()=>{if(file.files[0]){selectedFile=file.files[0];showFileInfo();enableProcess();}});
 
-    function enableProcess(){processBtn.disabled=false;statusEl.textContent='';downloadWrap.style.display='none';bar.style.width='0%';barWrap.style.display='none';newBtn.style.display='inline-block';}
+    function enableProcess(){
+      processBtn.disabled=false;statusEl.textContent='';
+      downloadWrap.style.display='none';bar.style.width='0%';barWrap.style.display='none';
+      newBtn.style.display='inline-block';
+    }
 
     // -------- обработка --------
     processBtn.disabled=true;
@@ -166,7 +173,7 @@
     processBtn.onclick=()=>{
       if(!selectedFile) return;
       processBtn.disabled=true;
-      statusEl.textContent='';
+      statusEl.textContent=T[lang].processing;
       downloadWrap.style.display='none';
       barWrap.style.display='block'; bar.style.width='0%';
 
@@ -174,26 +181,48 @@
       form.append('file',selectedFile);
       form.append('preset',preset);
 
+      let fallbackTimer=null, fallbackValue=55;
+
+      function startFallback(){
+        // плавно идём 55→95, если длина ответа неизвестна
+        stopFallback();
+        fallbackValue = Math.max(fallbackValue, 55);
+        fallbackTimer = setInterval(()=>{
+          if(fallbackValue < 95){
+            fallbackValue += 1; bar.style.width=fallbackValue+'%';
+          }
+        }, 250);
+      }
+      function stopFallback(){
+        if(fallbackTimer){clearInterval(fallbackTimer);fallbackTimer=null;}
+      }
+
       const xhr=new XMLHttpRequest();
-      xhr.open('POST','/api/clean');        // <--- при необходимости поменяйте путь
+      xhr.open('POST','/api/clean');         // <--- при необходимости поменяйте путь
       xhr.responseType='blob';
+      xhr.timeout = 240000;                   // 4 минуты
 
       // прогресс загрузки файла (0..50)
       xhr.upload.onprogress=(e)=>{
         if(e.lengthComputable){
           const pct=Math.round(e.loaded/e.total*50);
           bar.style.width=pct+'%';
+          if(pct>=50) startFallback();
         }
       };
-      // прогресс скачивания ответа (50..100)
+      xhr.upload.onload = ()=> startFallback();
+
+      // прогресс скачивания ответа (если сервер сообщает размер)
       xhr.onprogress=(e)=>{
         if(e.lengthComputable){
+          stopFallback();
           const pct=50+Math.round(e.loaded/e.total*50);
           bar.style.width=pct+'%';
         }
       };
 
       xhr.onload=()=>{
+        stopFallback();
         bar.style.width='100%';
         processBtn.disabled=false;
 
@@ -211,12 +240,11 @@
           return;
         }
 
-        // Вытащим имя файла из заголовка Content-Disposition
+        // Имя файла из Content-Disposition
         const cd = xhr.getResponseHeader('Content-Disposition') || '';
         const m = cd.match(/filename\*?=(?:UTF-8''|")?([^\";]+)/i);
         const fname = m ? decodeURIComponent(m[1]) : 'cleaned.mp3';
 
-        // Создадим ссылку на скачивание
         const url = URL.createObjectURL(xhr.response);
         dl.href=url;
         dl.setAttribute('download', fname);
@@ -225,8 +253,14 @@
       };
 
       xhr.onerror=()=>{
+        stopFallback();
         processBtn.disabled=false;
         statusEl.innerHTML=`<span class="err">${T[lang].network}</span>`;
+      };
+      xhr.ontimeout=()=>{
+        stopFallback();
+        processBtn.disabled=false;
+        statusEl.innerHTML=`<span class="err">${T[lang].network} (timeout)</span>`;
       };
 
       xhr.send(form);
