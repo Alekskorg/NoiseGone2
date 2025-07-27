@@ -1,10 +1,13 @@
 {
   "name": "noisegone",
   "private": true,
-  "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "dev": "vercel dev"
+  },
   "dependencies": {
     "busboy": "^1.6.0",
-    "ffmpeg-static": "^5.2.0"
+    "ffmpeg-static": "^5.2.0",
+    "ffprobe-static": "^3.1.0"
   }
 }
