@@ -46,7 +46,7 @@
   #processBtn{width:100%;background:#22c55e;color:#fff;margin:8px 0 12px}
   #processBtn:disabled{opacity:.6;cursor:not-allowed}
   #newBtn{display:none;background:#eef2ff;color:#111827;margin-left:0}
-  .bar-wrap{height:8px;background:#e8edf7;border-radius:6px;overflow:hidden;margin:10px 0 8px}
+  .bar-wrap{height:8px;background:#e8edf7;border-radius:6px;overflow:hidden;margin:10px 0 8px;pointer-events:none}
   .bar{height:100%;width:0;background:#22c55e;transition:width .2s}
   .status{min-height:20px;font-size:14px;color:#0f172a}
   .err{color:#dc2626}
@@ -87,172 +87,156 @@
     <p class="small" id="plan">Бесплатно — до 5 минут/день. Для больших объёмов будет поминутная оплата.</p>
   </div>
 
-<!-- FFmpeg WebAssembly (в браузере) -->
-<script type="module">
-  // Загружаем FFmpeg из CDN
-  import { createFFmpeg, fetchFile } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js';
+  <!-- UMD-версия FFmpeg: без ES-модулей -->
+  <script defer src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
 
-  const T = {
-    ru:{
-      desc:'Загрузите аудиофайл, и мы удалим шум',
-      hintTop:'Перетащите аудио сюда или нажмите, чтобы выбрать',
-      hintSub:'Поддерживаемые: WAV, MP3, M4A (до ~50 МБ)',
-      clean:'Очистить шум', newFile:'Новый файл',
-      free:'Бесплатно — до 5 минут/день. Для больших объёмов будет поминутная оплата.',
-      done:'Готово! Нажмите, чтобы скачать.',
-      downloading:'Скачать очищенный файл',
-      error:'Ошибка обработки', network:'Сетевая ошибка',
-      processing:'Идёт обработка…', preparing:'Подготовка FFmpeg…'
-    },
-    en:{
-      desc:"Upload an audio file and we'll remove the noise",
-      hintTop:'Drag & drop audio here or click to choose',
-      hintSub:'Supported: WAV, MP3, M4A (up to ~50 MB)',
-      clean:'Clean noise', newFile:'New file',
-      free:'Free — up to 5 minutes/day. Large volume billed per minute.',
-      done:'Done! Click to download.',
-      downloading:'Download cleaned file',
-      error:'Processing error', network:'Network error',
-      processing:'Processing…', preparing:'Preparing FFmpeg…'
+  <script>
+  document.addEventListener('DOMContentLoaded', function(){
+    // Если FFmpeg не загрузился — покажем подсказку
+    const ffmpegNS = window.FFmpeg;
+    const statusEl = document.getElementById('status');
+    const bar = document.getElementById('bar');
+    if (!ffmpegNS) {
+      statusEl.innerHTML = '<span class="err">Не загрузился FFmpeg (CDN). Обновите страницу или проверьте сеть/блокировщики.</span>';
+      return;
     }
-  };
 
-  let lang='ru', preset='podcast', selectedFile=null;
+    const { createFFmpeg, fetchFile } = ffmpegNS;
 
-  const $ = s => document.querySelector(s);
-  const desc=$('.desc'), drop=$('#drop'), file=$('#file');
-  const processBtn=$('#processBtn'), newBtn=$('#newBtn');
-  const bar=$('#bar'), statusEl=$('#status'), downloadWrap=$('#download'), dl=$('#dl');
-  const plan=$('#plan'), langBtn=$('#langBtn');
-  const modeBtns=[...document.querySelectorAll('.modes button')];
+    const T = {
+      ru:{desc:'Загрузите аудиофайл, и мы удалим шум',hintTop:'Перетащите аудио сюда или нажмите, чтобы выбрать',hintSub:'Поддерживаемые: WAV, MP3, M4A (до ~50 МБ)',clean:'Очистить шум', newFile:'Новый файл',free:'Бесплатно — до 5 минут/день. Для больших объёмов будет поминутная оплата.',done:'Готово! Нажмите, чтобы скачать.',downloading:'Скачать очищенный файл',error:'Ошибка обработки',network:'Сетевая ошибка',processing:'Идёт обработка…', preparing:'Подготовка FFmpeg…'},
+      en:{desc:"Upload an audio file and we'll remove the noise",hintTop:'Drag & drop audio here or click to choose',hintSub:'Supported: WAV, MP3, M4A (up to ~50 MB)',clean:'Clean noise', newFile:'New file',free:'Free — up to 5 minutes/day. Large volume billed per minute.',done:'Done! Click to download.',downloading:'Download cleaned file',error:'Processing error',network:'Network error',processing:'Processing…', preparing:'Preparing FFmpeg…'}
+    };
+    let lang='ru', preset='podcast', selectedFile=null;
 
-  function applyLang(){
-    const L=T[lang];
-    langBtn.textContent=(lang==='ru'?'EN':'RU');
-    desc.textContent=L.desc;
-    if(!selectedFile){
-      drop.innerHTML=`<div class="hint-top">${L.hintTop}</div><div class="hint-sub">${L.hintSub}</div>`;
+    const $ = s => document.querySelector(s);
+    const desc=$('.desc'), drop=$('#drop'), file=$('#file');
+    const processBtn=$('#processBtn'), newBtn=$('#newBtn');
+    const downloadWrap=$('#download'), dl=$('#dl');
+    const plan=$('#plan'), langBtn=$('#langBtn');
+    const modeBtns=[...document.querySelectorAll('.modes button')];
+
+    function applyLang(){
+      const L=T[lang];
+      langBtn.textContent=(lang==='ru'?'EN':'RU');
+      desc.textContent=L.desc;
+      if(!selectedFile){
+        drop.innerHTML=`<div class="hint-top">${L.hintTop}</div><div class="hint-sub">${L.hintSub}</div>`;
+      }
+      processBtn.textContent=L.clean; newBtn.textContent=L.newFile; plan.textContent=L.free; dl.textContent=L.downloading;
     }
-    processBtn.textContent=L.clean; newBtn.textContent=L.newFile; plan.textContent=L.free; dl.textContent=L.downloading;
-  }
-  langBtn.addEventListener('click', ()=>{ lang=(lang==='ru'?'en':'ru'); applyLang(); });
+    langBtn.addEventListener('click', ()=>{ lang=(lang==='ru'?'en':'ru'); applyLang(); });
 
-  modeBtns.forEach(b=>{
-    b.addEventListener('click', ()=>{
-      modeBtns.forEach(x=>x.classList.remove('active'));
-      b.classList.add('active'); preset=b.dataset.preset||'podcast';
+    modeBtns.forEach(b=>{
+      b.addEventListener('click', ()=>{
+        modeBtns.forEach(x=>x.classList.remove('active'));
+        b.classList.add('active'); preset=b.dataset.preset||'podcast';
+      });
     });
-  });
 
-  function bytesToSize(bytes){const u=['B','KB','MB','GB'];let i=0,v=bytes;while(v>=1024&&i<u.length-1){v/=1024;i++;}return v.toFixed(1)+' '+u[i];}
-  function showFileInfo(){
-    if(!selectedFile){applyLang();return;}
-    drop.innerHTML=`
-      <div class="file-line">
-        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#2563eb" d="M12 3l8 6v12H4V9l8-6zm0 2.3L6 10v9h12v-9l-6-4.7z"/></svg>
-        <span class="file-name" title="${selectedFile.name}">${selectedFile.name}</span>
-        <span class="file-size">(${bytesToSize(selectedFile.size)})</span>
-      </div>
-      <div class="hint-sub">${T[lang].hintSub}</div>`;
-  }
-  function resetUI(){
-    processBtn.disabled=true; downloadWrap.style.display='none';
-    statusEl.textContent=''; bar.style.width='0%';
-    newBtn.style.display='none'; selectedFile=null; file.value=''; applyLang();
-  }
-
-  drop.addEventListener('click', ()=>file.click());
-  drop.addEventListener('dragover', e=>{e.preventDefault(); drop.classList.add('hover');});
-  drop.addEventListener('dragleave', ()=>drop.classList.remove('hover'));
-  drop.addEventListener('drop', e=>{
-    e.preventDefault(); drop.classList.remove('hover');
-    if(e.dataTransfer.files && e.dataTransfer.files[0]){ selectedFile=e.dataTransfer.files[0]; showFileInfo(); processBtn.disabled=false; newBtn.style.display='inline-block'; }
-  });
-  file.addEventListener('change', ()=>{
-    if(file.files[0]){ selectedFile=file.files[0]; showFileInfo(); processBtn.disabled=false; newBtn.style.display='inline-block'; }
-  });
-  newBtn.addEventListener('click', resetUI);
-
-  // --- FFmpeg (браузер) ---
-  const ffmpeg = createFFmpeg({ log: false, corePath: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/ffmpeg-core.js' });
-  async function ensureFFmpegLoaded(){
-    if (!ffmpeg.isLoaded()) {
-      statusEl.textContent = T[lang].preparing;
-      // визуальный прогресс загрузки ядра
-      let pct = 0; const timer = setInterval(()=>{ pct = Math.min(95, pct+2); bar.style.width = pct+'%'; }, 200);
-      await ffmpeg.load();
-      clearInterval(timer);
-      bar.style.width = '0%';
-      statusEl.textContent = '';
+    function bytesToSize(bytes){const u=['B','KB','MB','GB'];let i=0,v=bytes;while(v>=1024&&i<u.length-1){v/=1024;i++;}return v.toFixed(1)+' '+u[i];}
+    function showFileInfo(){
+      if(!selectedFile){applyLang();return;}
+      drop.innerHTML=`
+        <div class="file-line">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#2563eb" d="M12 3l8 6v12H4V9l8-6zm0 2.3L6 10v9h12v-9l-6-4.7z"/></svg>
+          <span class="file-name" title="${selectedFile.name}">${selectedFile.name}</span>
+          <span class="file-size">(${bytesToSize(selectedFile.size)})</span>
+        </div>
+        <div class="hint-sub">${T[lang].hintSub}</div>`;
     }
-  }
+    function resetUI(){
+      processBtn.disabled=true; downloadWrap.style.display='none';
+      statusEl.textContent=''; bar.style.width='0%';
+      newBtn.style.display='none'; selectedFile=null; file.value=''; applyLang();
+    }
 
-  // Лёгкие цепочки фильтров
-  const CHAINS = {
-    podcast:  'highpass=f=100,lowpass=f=12000,afftdn=nr=15',
-    interview:'highpass=f=90,lowpass=f=12000,afftdn=nr=16',
-    voiceover:'highpass=f=80,lowpass=f=12000,afftdn=nr=17',
-    field:    'highpass=f=120,lowpass=f=11000,afftdn=nr=14'
-  };
+    drop.addEventListener('click', ()=>file.click());
+    drop.addEventListener('dragover', e=>{e.preventDefault(); drop.classList.add('hover');});
+    drop.addEventListener('dragleave', ()=>drop.classList.remove('hover'));
+    drop.addEventListener('drop', e=>{
+      e.preventDefault(); drop.classList.remove('hover');
+      if(e.dataTransfer.files && e.dataTransfer.files[0]){ selectedFile=e.dataTransfer.files[0]; showFileInfo(); processBtn.disabled=false; newBtn.style.display='inline-block'; }
+    });
+    file.addEventListener('change', ()=>{
+      if(file.files[0]){ selectedFile=file.files[0]; showFileInfo(); processBtn.disabled=false; newBtn.style.display='inline-block'; }
+    });
+    newBtn.addEventListener('click', resetUI);
 
-  processBtn.addEventListener('click', async ()=>{
-    if(!selectedFile) return;
+    // --- FFmpeg (браузер) ---
+    const ffmpeg = createFFmpeg({ log: false, corePath: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/ffmpeg-core.js' });
+    async function ensureFFmpegLoaded(){
+      if (!ffmpeg.isLoaded()) {
+        statusEl.textContent = T[lang].preparing;
+        let pct = 0; const timer = setInterval(()=>{ pct = Math.min(95, pct+2); bar.style.width = pct+'%'; }, 200);
+        await ffmpeg.load();
+        clearInterval(timer);
+        bar.style.width = '0%';
+        statusEl.textContent = '';
+      }
+    }
+    const CHAINS = {
+      podcast:  'highpass=f=100,lowpass=f=12000,afftdn=nr=15',
+      interview:'highpass=f=90,lowpass=f=12000,afftdn=nr=16',
+      voiceover:'highpass=f=80,lowpass=f=12000,afftdn=nr=17',
+      field:    'highpass=f=120,lowpass=f=11000,afftdn=nr=14'
+    };
+
     processBtn.disabled = true;
-    downloadWrap.style.display='none';
-    statusEl.textContent = T[lang].processing;
-    bar.style.width='0%';
+    processBtn.addEventListener('click', async ()=>{
+      if(!selectedFile) return;
+      processBtn.disabled = true;
+      downloadWrap.style.display='none';
+      statusEl.textContent = T[lang].processing;
+      bar.style.width='0%';
 
-    try{
-      await ensureFFmpegLoaded();
+      try{
+        await ensureFFmpegLoaded();
 
-      // загружаем файл во внутреннюю FS
-      const inName  = 'input';
-      const inExt   = selectedFile.name.split('.').pop().toLowerCase();
-      const inFile  = `${inName}.${inExt}`;
-      const outFile = `cleaned.wav`;
+        const inExt  = (selectedFile.name.split('.').pop()||'wav').toLowerCase();
+        const inFile = `in.${inExt}`;
+        const out    = `cleaned.wav`;
 
-      ffmpeg.FS('writeFile', inFile, await fetchFile(selectedFile));
+        ffmpeg.FS('writeFile', inFile, await fetchFile(selectedFile));
 
-      // прогресс: выставим псевдо-процент каждые 300мс, сбросим на 100 в конце
-      let fake = 0;
-      const t = setInterval(()=>{ fake = Math.min(95, fake + 3); bar.style.width = fake+'%'; }, 300);
+        let fake = 0;
+        const t = setInterval(()=>{ fake = Math.min(95, fake + 3); bar.style.width = fake+'%'; }, 300);
 
-      // нормализация: моно, 32кГц, WAV + шумодав
-      const chain = CHAINS[preset] || CHAINS.podcast;
-      await ffmpeg.run(
-        '-hide_banner','-loglevel','error',
-        '-i', inFile,
-        '-vn','-sn',
-        '-ac','1',
-        '-ar','32000',
-        '-af', chain,
-        '-c:a','pcm_s16le',
-        outFile
-      );
+        const chain = CHAINS[preset] || CHAINS.podcast;
+        await ffmpeg.run(
+          '-hide_banner','-loglevel','error',
+          '-i', inFile,
+          '-vn','-sn','-ac','1','-ar','32000',
+          '-af', chain,
+          '-c:a','pcm_s16le',
+          out
+        );
 
-      clearInterval(t);
-      bar.style.width='100%';
+        clearInterval(t);
+        bar.style.width='100%';
 
-      const data = ffmpeg.FS('readFile', outFile);
-      const blob = new Blob([data.buffer], { type: 'audio/wav' });
-      const url  = URL.createObjectURL(blob);
-      dl.href = url;
-      dl.download = (selectedFile.name.replace(/\.[^.]+$/, '') || 'cleaned') + '_cleaned.wav';
-      downloadWrap.style.display='block';
-      statusEl.textContent = T[lang].done;
-      processBtn.disabled=false;
-    }catch(e){
-      console.error(e);
-      statusEl.innerHTML = `<span class="err">${T[lang].error}: ${e?.message||e}</span>`;
-      processBtn.disabled=false;
-    }
+        const data = ffmpeg.FS('readFile', out);
+        const blob = new Blob([data.buffer], { type: 'audio/wav' });
+        const url  = URL.createObjectURL(blob);
+        dl.href = url;
+        dl.download = (selectedFile.name.replace(/\.[^.]+$/, '') || 'cleaned') + '_cleaned.wav';
+        downloadWrap.style.display='block';
+        statusEl.textContent = T[lang].done;
+        processBtn.disabled=false;
+      }catch(e){
+        console.error(e);
+        statusEl.innerHTML = `<span class="err">${T[lang].error}: ${e?.message||e}</span>`;
+        processBtn.disabled=false;
+      }
+    });
+
+    // i18n старт
+    applyLang();
   });
-
-  // старт
-  applyLang();
-</script>
+  </script>
 </body>
 </html>
+
 
 
 
