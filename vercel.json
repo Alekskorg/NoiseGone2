@@ -1,9 +1,8 @@
 {
   "functions": {
-    "api/*.js": {
-      "runtime": "nodejs18.x",
+    "api/clean.js": {
       "memory": 1024,
-      "maxDuration": 60
+      "maxDuration": 10
     }
   }
 }
