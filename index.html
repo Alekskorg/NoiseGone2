@@ -1,224 +1,81 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NoiseGone — Очистка звука</title>
-  <link rel="icon" href="favicon.ico" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-  <style>
-    :root{
-      --bg1:#eef4ff; --bg2:#f7f7ff; --card:#fff;
-      --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
-      --brand:#22c55e; --brand-600:#16a34a;
-      --shadow:0 10px 40px rgba(2,6,23,.10);
-      --radius:22px;
-    }
-    *,*:before,*:after{box-sizing:border-box}
-    html,body{height:100%;margin:0}
-    body{
-      font-family:Inter,system-ui,ui-sans-serif,Arial;
-      background:radial-gradient(1200px 600px at 20% 0%,var(--bg1),transparent) no-repeat,
-                 linear-gradient(180deg,var(--bg2),#fff);
-      display:flex;align-items:center;justify-content:center;
-      padding:32px;color:var(--text);
-    }
-    .card{
-      width:min(440px,100%);
-      background:var(--card); border-radius:var(--radius);
-      padding:32px 28px; box-shadow:var(--shadow); text-align:center;
-      position:relative;
-    }
-    .lang{position:absolute;top:14px;right:14px}
-    .chip{
-      border:1px solid var(--border); background:#fff;
-      padding:6px 12px; border-radius:999px; font-size:13px;
-      cursor:pointer; user-select:none;
-      box-shadow:0 2px 6px rgba(2,6,23,.06);
-    }
-    .logo{height:54px; margin-bottom:8px}
-    h1{font-size:26px; margin:6px 0 2px; letter-spacing:.2px}
-    .desc{color:var(--muted); margin:0 0 18px; text-decoration:none}
-    /* убираем любые подсвечивания/подчёркивания */
-    .card *{text-decoration:none}
+// api/clean.js
+import { spawn } from 'child_process';
+import ffmpegPath from 'ffmpeg-static';
+import Busboy from 'busboy';
+import { tmpdir } from 'os';
+import { createWriteStream as cws } from 'fs';
+import { readFile, unlink } from 'fs/promises';
+import { join } from 'path';
 
-    .dropzone{
-      border:1.5px dashed #cbd5e1;
-      border-radius:16px; padding:22px; cursor:pointer;
-      transition:background .15s,border-color .15s,transform .08s;
-      background:#fafafa;
-    }
-    .dropzone:hover{background:#f5faff; border-color:#9bb6ff}
-    .dropzone.drag{background:#eef6ff; border-color:#80a9ff}
-    .dz-title{font-weight:600; margin:0 0 6px}
-    .dz-hint{font-size:13px; color:var(--muted); margin:0}
-    .file{margin-top:10px; font-size:14px; word-break:break-all}
+export const config = {
+  api: { bodyParser: false },
+};
 
-    .btn{
-      margin-top:16px; width:100%;
-      background:var(--brand); color:#fff; border:0;
-      padding:12px 16px; border-radius:12px; font-size:16px; font-weight:600;
-      cursor:pointer; transition:transform .06s, background .15s, opacity .15s;
-    }
-    .btn:hover{background:var(--brand-600)}
-    .btn:active{transform:translateY(1px)}
-    .btn[disabled]{opacity:.45; cursor:not-allowed}
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).send('Method Not Allowed');
+  }
 
-    .progress{display:none; text-align:left; margin-top:16px}
-    .bar{height:8px; background:#e5e7eb; border-radius:999px; overflow:hidden}
-    .fill{height:100%; width:0%; background:var(--brand); transition:width .18s}
-    .status{margin:8px 0 0; font-size:14px; color:var(--muted)}
-    .done{display:none; margin-top:14px; color:#15803d}
-    .download{margin-left:6px}
-    @media (max-width:420px){ .card{padding:24px 20px} }
-  </style>
-</head>
-<body>
-  <div class="card" id="app">
-    <div class="lang">
-      <button class="chip" id="switch">EN</button>
-    </div>
+  try {
+    const busboy = Busboy({ headers: req.headers });
+    const inPath = join(tmpdir(), `ng_in_${Date.now()}.wav`);
+    let preset = 'podcast';
+    let gotFile = false;
 
-    <img src="logo.png" alt="NoiseGone" class="logo" />
-    <h1 data-i18n="heading">NoiseGone</h1>
-    <p class="desc" data-i18n="description">Загрузите аудиофайл, и мы удалим шум</p>
+    const writePromise = new Promise((resolve, reject) => {
+      busboy.on('file', (name, file) => {
+        gotFile = true;
+        const ws = cws(inPath);
+        file.pipe(ws);
+        ws.on('finish', resolve);
+        ws.on('error', reject);
+      });
+      busboy.on('field', (name, val) => {
+        if (name === 'preset') preset = String(val || 'podcast');
+      });
+      busboy.on('error', reject);
+      busboy.on('finish', () => {
+        if (!gotFile) reject(new Error('No file uploaded'));
+      });
+      req.pipe(busboy);
+    });
 
-    <label class="dropzone" id="dropzone" for="file">
-      <p class="dz-title" data-i18n="choose">Перетащите аудио сюда или нажмите, чтобы выбрать</p>
-      <p class="dz-hint" data-i18n="hint">Поддерживаемые форматы: WAV, MP3, M4A · до 50 МБ</p>
-      <input type="file" id="file" accept="audio/*" hidden />
-      <div class="file" id="filename"></div>
-    </label>
+    await writePromise;
 
-    <button class="btn" id="run" data-i18n="button" disabled>Очистить шум</button>
-
-    <div class="progress" id="progress">
-      <div class="bar"><div class="fill" id="fill"></div></div>
-      <div class="status" id="status"></div>
-    </div>
-
-    <div class="done" id="done">
-      ✅ <span data-i18n="doneText">Шум удалён!</span>
-      <a class="download" id="dl" href="#" download>
-        ⬇️ <span data-i18n="download">Скачать очищенный файл</span>
-      </a>
-    </div>
-  </div>
-
-  <script>
-    // локализация
-    const T = {
-      ru:{heading:"NoiseGone",description:"Загрузите аудиофайл, и мы удалим шум",
-          choose:"Перетащите аудио сюда или нажмите, чтобы выбрать",
-          hint:"Поддерживаемые форматы: WAV, MP3, M4A · до 50 МБ",
-          button:"Очистить шум",processing:"Идёт обработка…",
-          doneText:"Шум удалён!",download:"Скачать очищенный файл",switch:"EN"},
-      en:{heading:"NoiseGone",description:"Upload an audio file and we'll remove the noise",
-          choose:"Drag & drop audio here or click to choose",
-          hint:"Supported: WAV, MP3, M4A · up to 50 MB",
-          button:"Clean noise",processing:"Processing…",
-          doneText:"Noise removed!",download:"Download cleaned file",switch:"RU"}
+    const presets = {
+      podcast:  "highpass=f=80,afftdn=nf=-25,lowpass=f=12000,loudnorm=I=-16:TP=-1.5:LRA=11",
+      interview:"highpass=f=80,afftdn=nf=-30,lowpass=f=12000,loudnorm=I=-16:TP=-1.5:LRA=11",
+      voiceover:"highpass=f=100,afftdn=nf=-22,lowpass=f=12000,loudnorm=I=-16:TP=-1.5:LRA=9",
+      field:    "highpass=f=100,afftdn=nf=-35,lowpass=f=11000,loudnorm=I=-18:TP=-2:LRA=11"
     };
-    let lang = "ru", fileObj = null;
+    const af = presets[preset] || presets.podcast;
 
-    const $ = sel => document.querySelector(sel);
-    const els = {
-      switch: $('#switch'),
-      h:      $('[data-i18n="heading"]'),
-      d:      $('[data-i18n="description"]'),
-      choose: $('[data-i18n="choose"]'),
-      hint:   $('[data-i18n="hint"]'),
-      btn:    $('#run'),
-      dz:     $('#dropzone'),
-      input:  $('#file'),
-      name:   $('#filename'),
-      prog:   $('#progress'),
-      fill:   $('#fill'),
-      status: $('#status'),
-      done:   $('#done'),
-      dl:     $('#dl'),
-      doneText: $('[data-i18n="doneText"]'),
-      downloadText: $('[data-i18n="download"]')
-    };
+    const outPath = join(tmpdir(), `ng_out_${Date.now()}.mp3`);
+    const args = [
+      '-y', '-i', inPath,
+      '-af', af,
+      '-ar', '48000', '-ac', '1',
+      '-c:a', 'libmp3lame', '-b:a', '192k',
+      outPath
+    ];
 
-    function setLang(){
-      const L=T[lang];
-      document.documentElement.lang=lang;
-      els.switch.textContent=L.switch;
-      els.h.textContent=L.heading;
-      els.d.textContent=L.description;
-      els.choose.textContent=L.choose;
-      els.hint.textContent=L.hint;
-      els.btn.textContent=L.button;
-      if(els.prog.style.display!=="none") els.status.textContent=L.processing;
-      if(els.done.style.display!=="none"){
-        els.doneText.textContent=L.doneText;
-        els.downloadText.textContent=L.download;
-      }
-    }
-    els.switch.addEventListener('click',()=>{lang=lang==='ru'?'en':'ru';setLang();});
-
-    // выбор файла
-    els.input.addEventListener('change',()=>{
-      if(!els.input.files.length) return;
-      fileObj = els.input.files[0];
-      els.name.textContent = "📎 " + fileObj.name;
-      els.btn.disabled = false;
-      els.done.style.display = "none";
+    await new Promise((resolve, reject) => {
+      const proc = spawn(ffmpegPath, args);
+      let stderr = '';
+      proc.stderr.on('data', d => (stderr += d.toString()));
+      proc.on('close', code => code === 0 ? resolve() : reject(new Error(stderr)));
     });
 
-    // drag&drop
-    ["dragenter","dragover"].forEach(e=>{
-      els.dz.addEventListener(e,(ev)=>{ev.preventDefault(); ev.stopPropagation(); els.dz.classList.add('drag');});
-    });
-    ["dragleave","drop"].forEach(e=>{
-      els.dz.addEventListener(e,(ev)=>{ev.preventDefault(); ev.stopPropagation(); els.dz.classList.remove('drag');});
-    });
-    els.dz.addEventListener('drop',(ev)=>{
-      const f = ev.dataTransfer.files?.[0];
-      if(!f) return;
-      fileObj = f;
-      els.input.files = ev.dataTransfer.files;
-      els.name.textContent = "📎 " + f.name;
-      els.btn.disabled = false;
-      els.done.style.display = "none";
-    });
-    els.dz.addEventListener('click',()=>els.input.click());
+    const data = await readFile(outPath);
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Disposition', 'attachment; filename="cleaned.mp3"');
+    res.status(200).send(data);
 
-    // имитация обработки
-    els.btn.addEventListener('click',()=>{
-      if(!fileObj) return;
-      els.btn.disabled = true;
-      els.prog.style.display = "block";
-      els.done.style.display = "none";
-      els.fill.style.width = "0%";
-      els.status.textContent = T[lang].processing;
-
-      let p=0;
-      const t=setInterval(()=>{
-        p += 4 + Math.random()*6;
-        if(p>=100){ p=100; clearInterval(t); finish(); }
-        els.fill.style.width = p + "%";
-      },90);
-    });
-
-    function finish(){
-      els.prog.style.display="none";
-      els.done.style.display="block";
-      const L=T[lang]; els.doneText.textContent=L.doneText; els.downloadText.textContent=L.download;
-
-      // Демонстрационно — скачать исходник под новым именем.
-      const url = URL.createObjectURL(fileObj);
-      const base = fileObj.name.replace(/(\.[^.]+)?$/,'');
-      const ext  = (fileObj.name.match(/\.[^.]+$/)||['.wav'])[0];
-      els.dl.href = url; els.dl.download = `${base}_cleaned${ext}`;
-
-      // Разрешаем повторную обработку
-      els.btn.disabled = false;
-    }
-
-    setLang();
-  </script>
-</body>
-</html>
-
+    unlink(inPath).catch(()=>{});
+    unlink(outPath).catch(()=>{});
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Processing error');
+  }
+}
