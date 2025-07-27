@@ -1,293 +1,254 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>NoiseGone</title>
   <style>
-    /* страничные стили */
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg,#e0f7ff,#f0e7ff);
-      font-family: sans-serif;
+    body{
+      margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#e0f3ff,#f3e0ff);font-family:system-ui,Segoe UI,Arial,sans-serif
     }
-    .container {
-      background: #fff;
-      border-radius: 1rem;
-      max-width: 360px;
-      width: 90%;
-      padding: 2rem;
-      box-shadow: 0 0 40px rgba(0,0,0,0.05);
-      position: relative;
-      text-align: center;
-    }
-    .logo {
-      max-width: 120px;
-      margin: 0 auto 1.5rem;
-    }
-    h1 {
-      margin: 0 0 0.5rem;
-      font-size: 1.75rem;
-    }
-    p.subtitle {
-      margin: 0 0 1.5rem;
-      color: #666;
-    }
-    .language-switcher {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: #f7f7f7;
-      border: none;
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .modes {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      justify-content: center;
-    }
-    .modes button {
-      flex: 1;
-      padding: 0.5rem;
-      border: 1px solid #ddd;
-      border-radius: 0.5rem;
-      background: white;
-      cursor: pointer;
-    }
-    .modes button.active {
-      background: #2962ff;
-      color: white;
-      border-color: #2962ff;
-    }
-    .dropzone {
-      border: 2px dashed #bbb;
-      padding: 1.5rem;
-      border-radius: 0.5rem;
-      color: #555;
-      margin-bottom: 1rem;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .dropzone.hover {
-      background: #f0faff;
-      border-color: #2962ff;
-    }
-    .actions {
-      margin-bottom: 1rem;
-    }
-    .actions button {
-      width: 100%;
-      padding: 0.75rem;
-      background: #34a853;
-      color: white;
-      border: none;
-      border-radius: 2rem;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .actions button:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-    .progress-bar {
-      height: 8px;
-      background: #34a853;
-      border-radius: 4px;
-      width: 0%;
-      transition: width 0.2s;
-      margin-bottom: 1rem;
-    }
-    .status-text {
-      font-size: 0.9rem;
-      color: #333;
-      margin-bottom: 1rem;
-    }
-    .download-link {
-      display: none;
-      margin-top: 1rem;
-    }
-    .download-link a {
-      color: #2962ff;
-      text-decoration: none;
-      font-weight: bold;
-    }
+    .card{background:#fff;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.08);
+      width:min(92vw,420px);padding:28px;position:relative;text-align:center}
+    #langBtn{position:absolute;top:12px;right:12px;border:0;background:#f7f7f7;border-radius:12px;
+      padding:6px 10px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.08);font-weight:600}
+    .logo{width:96px;margin:6px auto 12px;display:block}
+    h1{font-size:28px;margin:0 0 6px}
+    .desc{color:#555;margin:0 0 18px}
+    .modes{display:flex;gap:8px;justify-content:center;margin:0 0 12px}
+    .modes button{flex:1;min-width:0;padding:8px;border:1px solid #d7d7d7;border-radius:10px;
+      background:#fff;cursor:pointer}
+    .modes button.active{background:#2563eb;color:#fff;border-color:#2563eb}
+    .drop{border:2px dashed #9db6e3;border-radius:12px;padding:16px;margin:10px 0 14px;cursor:pointer;
+      transition:.15s}
+    .drop.hover{background:#eef6ff;border-color:#2563eb}
+    .file-line{display:flex;align-items:center;gap:10px;justify-content:center;color:#333}
+    .file-name{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .file-size{color:#666;font-size:12px}
+    .hint-top{font-weight:600;margin-bottom:4px}
+    .hint-sub{color:#666;font-size:13px}
+    .btn{display:inline-block;border:0;border-radius:999px;padding:12px 18px;font-size:16px;cursor:pointer}
+    #processBtn{width:100%;background:#34a853;color:#fff;margin:6px 0 10px}
+    #newBtn{display:none;background:#f0f0f0;margin-left:8px}
+    .bar-wrap{height:8px;background:#e8e8e8;border-radius:6px;overflow:hidden;margin-bottom:10px;display:none}
+    .bar{height:100%;width:0;background:#34a853;transition:width .2s}
+    .status{min-height:20px;font-size:14px;color:#333}
+    #download{display:none;margin-top:8px}
+    #download a{color:#2563eb;font-weight:700;text-decoration:none}
+    .small{font-size:13px;color:#666;margin-top:10px}
+    .err{color:#c62828}
   </style>
 </head>
 <body>
-  <div class="container">
-    <button class="language-switcher">EN</button>
-    <img src="logo.png" alt="NoiseGone Logo" class="logo" />
+  <div class="card">
+    <button id="langBtn">EN</button>
+    <img class="logo" src="logo.png" alt="NoiseGone logo">
     <h1>NoiseGone</h1>
-    <p class="subtitle">Upload an audio file and we’ll remove the noise</p>
+    <p class="desc">Загрузите аудиофайл, и мы удалим шум</p>
 
     <div class="modes">
-      <button data-mode="podcast" class="active">Podcast</button>
-      <button data-mode="interview">Interview</button>
-      <button data-mode="voiceover">Voice-over</button>
-      <button data-mode="field">Field</button>
+      <button class="active" data-preset="podcast">Podcast</button>
+      <button data-preset="interview">Interview</button>
+      <button data-preset="voiceover">Voice‑over</button>
+      <button data-preset="field">Field</button>
     </div>
 
-    <div class="dropzone">Drag & drop audio here, or click to choose</div>
-    <input type="file" accept=".wav,.mp3,.m4a" style="display:none" />
+    <div id="drop" class="drop">
+      <div class="hint-top">Перетащите аудио сюда или нажмите, чтобы выбрать</div>
+      <div class="hint-sub">Поддерживаемые: WAV, MP3, M4A (до ~50 МБ)</div>
+    </div>
+    <input id="file" type="file" accept="audio/*" style="display:none">
 
-    <div class="actions">
-      <button class="clean-btn" disabled>Clean noise</button>
+    <div>
+      <button id="processBtn" class="btn">Очистить шум</button>
+      <button id="newBtn" class="btn">Новый файл</button>
     </div>
 
-    <div class="progress-bar"></div>
-    <div class="status-text"></div>
-    <div class="download-link"><a href="#" download>Download cleaned file</a></div>
+    <div class="bar-wrap" id="barWrap"><div class="bar" id="bar"></div></div>
+    <div class="status" id="status"></div>
+
+    <div id="download"><a id="dl" href="#" download="cleaned.mp3">Скачать очищенный файл</a></div>
+    <p class="small" id="plan">Бесплатно — до 5 минут/день. Для больших объёмов будет поминутная оплата.</p>
   </div>
 
   <script>
-    (function(){
-      const LANG = { 
-        en: {
-          subtitle: "Upload an audio file and we'll remove the noise",
-          drop: "Drag & drop audio here, or click to choose",
-          clean: "Clean noise",
-          free: "Free — up to 5 minutes/day. Large volume billed per minute.",
-          downloading: "Download cleaned file",
-          done: "Done! Click to download."
-        },
-        ru: {
-          subtitle: "Загрузите аудиофайл, и мы удалим шум",
-          drop: "Перетащите аудио сюда или нажмите, чтобы выбрать",
-          clean: "Очистить шум",
-          free: "Бесплатно — до 5 мин/день. Большой объём оплачивается поминутно.",
-          downloading: "Скачать очищенный файл",
-          done: "Готово! Кликните для скачивания."
+  (function(){
+    // -------- i18n --------
+    const T = {
+      ru:{
+        desc:'Загрузите аудиофайл, и мы удалим шум',
+        hintTop:'Перетащите аудио сюда или нажмите, чтобы выбрать',
+        hintSub:'Поддерживаемые: WAV, MP3, M4A (до ~50 МБ)',
+        clean:'Очистить шум',
+        newFile:'Новый файл',
+        free:'Бесплатно — до 5 минут/день. Для больших объёмов будет поминутная оплата.',
+        done:'Готово! Кликните, чтобы скачать.',
+        downloading:'Скачать очищенный файл',
+        error:'Ошибка обработки',
+        network:'Сетевая ошибка'
+      },
+      en:{
+        desc:"Upload an audio file and we'll remove the noise",
+        hintTop:'Drag & drop audio here or click to choose',
+        hintSub:'Supported: WAV, MP3, M4A (up to ~50 MB)',
+        clean:'Clean noise',
+        newFile:'New file',
+        free:'Free — up to 5 minutes/day. Large volume billed per minute.',
+        done:'Done! Click to download.',
+        downloading:'Download cleaned file',
+        error:'Processing error',
+        network:'Network error'
+      }
+    };
+    let lang='ru';
+    const byId = id=>document.getElementById(id);
+    const langBtn=byId('langBtn'), desc=document.querySelector('.desc'),
+          drop=byId('drop'), file=byId('file'),
+          processBtn=byId('processBtn'), newBtn=byId('newBtn'),
+          barWrap=byId('barWrap'), bar=byId('bar'),
+          statusEl=byId('status'), downloadWrap=byId('download'),
+          dl=byId('dl'), plan=byId('plan');
+    const modeBtns=[...document.querySelectorAll('.modes button')];
+
+    function applyLang(){
+      const L=T[lang];
+      langBtn.textContent = (lang==='ru'?'EN':'RU');
+      desc.textContent=L.desc;
+      drop.innerHTML = `
+        <div class="hint-top">${L.hintTop}</div>
+        <div class="hint-sub">${L.hintSub}</div>
+      `;
+      processBtn.textContent=L.clean;
+      newBtn.textContent=L.newFile;
+      plan.textContent=L.free;
+      dl.textContent=L.downloading;
+    }
+    langBtn.onclick=()=>{lang=(lang==='ru'?'en':'ru');applyLang();};
+    applyLang();
+
+    // -------- режимы --------
+    let preset='podcast';
+    modeBtns.forEach(b=>b.onclick=()=>{modeBtns.forEach(x=>x.classList.remove('active'));b.classList.add('active');preset=b.dataset.preset;});
+
+    // -------- файл/дроп --------
+    let selectedFile=null;
+    function showFileInfo(){
+      if(!selectedFile){applyLang();return;}
+      const size=(bytes=>{
+        const u=['B','KB','MB','GB'];let i=0;let v=bytes;
+        while(v>=1024&&i<u.length-1){v/=1024;i++;}
+        return v.toFixed(1)+' '+u[i];
+      })(selectedFile.size);
+      drop.innerHTML=`
+        <div class="file-line">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#2563eb" d="M12 3l8 6v12H4V9l8-6zm0 2.3L6 10v9h12v-9l-6-4.7z"/></svg>
+          <span class="file-name" title="${selectedFile.name}">${selectedFile.name}</span>
+          <span class="file-size">(${size})</span>
+        </div>
+        <div class="hint-sub">${T[lang].hintSub}</div>
+      `;
+    }
+    drop.addEventListener('click',()=>file.click());
+    drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('hover');});
+    drop.addEventListener('dragleave',()=>drop.classList.remove('hover'));
+    drop.addEventListener('drop',e=>{
+      e.preventDefault();drop.classList.remove('hover');
+      if(e.dataTransfer.files&&e.dataTransfer.files[0]){selectedFile=e.dataTransfer.files[0];showFileInfo();enableProcess();}
+    });
+    file.addEventListener('change',()=>{if(file.files[0]){selectedFile=file.files[0];showFileInfo();enableProcess();}});
+
+    function enableProcess(){processBtn.disabled=false;statusEl.textContent='';downloadWrap.style.display='none';bar.style.width='0%';barWrap.style.display='none';newBtn.style.display='inline-block';}
+
+    // -------- обработка --------
+    processBtn.disabled=true;
+
+    processBtn.onclick=()=>{
+      if(!selectedFile) return;
+      processBtn.disabled=true;
+      statusEl.textContent='';
+      downloadWrap.style.display='none';
+      barWrap.style.display='block'; bar.style.width='0%';
+
+      const form=new FormData();
+      form.append('file',selectedFile);
+      form.append('preset',preset);
+
+      const xhr=new XMLHttpRequest();
+      xhr.open('POST','/api/clean');        // <--- при необходимости поменяйте путь
+      xhr.responseType='blob';
+
+      // прогресс загрузки файла (0..50)
+      xhr.upload.onprogress=(e)=>{
+        if(e.lengthComputable){
+          const pct=Math.round(e.loaded/e.total*50);
+          bar.style.width=pct+'%';
         }
       };
-      let currentLang = 'en';
+      // прогресс скачивания ответа (50..100)
+      xhr.onprogress=(e)=>{
+        if(e.lengthComputable){
+          const pct=50+Math.round(e.loaded/e.total*50);
+          bar.style.width=pct+'%';
+        }
+      };
 
-      const
-        switcher = document.querySelector('.language-switcher'),
-        container = document.querySelector('.container'),
-        subtitle  = container.querySelector('.subtitle'),
-        dropzone  = container.querySelector('.dropzone'),
-        fileInput = container.querySelector('input[type=file]'),
-        cleanBtn  = container.querySelector('.clean-btn'),
-        progress  = container.querySelector('.progress-bar'),
-        statusTxt = container.querySelector('.status-text'),
-        dlLinkDiv = container.querySelector('.download-link'),
-        dlAnchor  = dlLinkDiv.querySelector('a'),
-        modesBtns = container.querySelectorAll('.modes button');
+      xhr.onload=()=>{
+        bar.style.width='100%';
+        processBtn.disabled=false;
 
-      let selectedFile = null;
-      let selectedMode = 'podcast';
+        if(xhr.status!==200){
+          statusEl.innerHTML=`<span class="err">${T[lang].error} (${xhr.status})</span>`;
+          return;
+        }
 
-      // Переключатель языка
-      switcher.addEventListener('click', ()=>{
-        currentLang = currentLang === 'en' ? 'ru' : 'en';
-        switcher.textContent = currentLang.toUpperCase();
-        subtitle.textContent = LANG[currentLang].subtitle;
-        dropzone.textContent = LANG[currentLang].drop;
-        cleanBtn.textContent = LANG[currentLang].clean;
-        dlAnchor.textContent = LANG[currentLang].downloading;
-        statusTxt.textContent = '';
-      });
+        // Если пришёл текст/ошибка, а не аудио — покажем
+        const type = xhr.getResponseHeader('Content-Type') || '';
+        if(type.includes('text') || (xhr.response && xhr.response.size<8)){
+          const reader=new FileReader();
+          reader.onload=()=>{ statusEl.innerHTML=`<span class="err">${reader.result || T[lang].error}</span>`; };
+          reader.readAsText(xhr.response || new Blob());
+          return;
+        }
 
-      // Выбор режима
-      modesBtns.forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          modesBtns.forEach(b=>b.classList.remove('active'));
-          btn.classList.add('active');
-          selectedMode = btn.dataset.mode;
-        });
-      });
+        // Вытащим имя файла из заголовка Content-Disposition
+        const cd = xhr.getResponseHeader('Content-Disposition') || '';
+        const m = cd.match(/filename\*?=(?:UTF-8''|")?([^\";]+)/i);
+        const fname = m ? decodeURIComponent(m[1]) : 'cleaned.mp3';
 
-      // Drag & drop
-      dropzone.addEventListener('click', ()=> fileInput.click());
-      dropzone.addEventListener('dragover', ev=>{
-        ev.preventDefault();
-        dropzone.classList.add('hover');
-      });
-      dropzone.addEventListener('dragleave', ()=> dropzone.classList.remove('hover'));
-      dropzone.addEventListener('drop', ev=>{
-        ev.preventDefault();
-        dropzone.classList.remove('hover');
-        handleFile(ev.dataTransfer.files[0]);
-      });
-      fileInput.addEventListener('change', ()=> handleFile(fileInput.files[0]));
+        // Создадим ссылку на скачивание
+        const url = URL.createObjectURL(xhr.response);
+        dl.href=url;
+        dl.setAttribute('download', fname);
+        downloadWrap.style.display='block';
+        statusEl.textContent=T[lang].done;
+      };
 
-      function handleFile(file){
-        if(!file) return;
-        selectedFile = file;
-        dropzone.textContent = file.name;
-        cleanBtn.disabled = false;
-        statusTxt.textContent = '';
-        progress.style.width = '0%';
-        dlLinkDiv.style.display = 'none';
-      }
+      xhr.onerror=()=>{
+        processBtn.disabled=false;
+        statusEl.innerHTML=`<span class="err">${T[lang].network}</span>`;
+      };
 
-      cleanBtn.addEventListener('click', ()=>{
-        if(!selectedFile) return;
-        uploadAndClean();
-      });
+      xhr.send(form);
+    };
 
-      function uploadAndClean(){
-        cleanBtn.disabled = true;
-        statusTxt.textContent = '';
-        dlLinkDiv.style.display = 'none';
-
-        const form = new FormData();
-        form.append('file', selectedFile);
-        form.append('preset', selectedMode);
-
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST','/api/clean');
-        xhr.responseType = 'blob';
-
-        xhr.upload.onprogress = e => {
-          if(e.lengthComputable){
-            const pct = Math.round(e.loaded/e.total * 50);
-            progress.style.width = pct + '%';
-          }
-        };
-        xhr.onprogress = e => {
-          if(e.lengthComputable){
-            const pct = 50 + Math.round(e.loaded/e.total * 50);
-            progress.style.width = pct + '%';
-          }
-        };
-
-        xhr.onload = ()=>{
-          if(xhr.status === 200){
-            progress.style.width = '100%';
-            statusTxt.textContent = LANG[currentLang].done;
-            const blob = xhr.response;
-            const url = URL.createObjectURL(blob);
-            dlAnchor.href = url;
-            dlLinkDiv.style.display = 'block';
-          } else {
-            statusTxt.textContent = 'Error ' + xhr.status;
-          }
-          cleanBtn.disabled = false;
-        };
-
-        xhr.onerror = ()=>{
-          statusTxt.textContent = 'Network error';
-          cleanBtn.disabled = false;
-        };
-
-        xhr.send(form);
-      }
-
-      // инициализация текстов
-      switcher.click();
-      switcher.click();
-    })();
+    // -------- новый файл / сброс --------
+    newBtn.onclick=()=>{
+      selectedFile=null;
+      file.value='';
+      processBtn.disabled=true;
+      downloadWrap.style.display='none';
+      statusEl.textContent='';
+      bar.style.width='0%';
+      barWrap.style.display='none';
+      newBtn.style.display='none';
+      applyLang(); // вернём подсказки в дроп‑зону
+    };
+  })();
   </script>
 </body>
 </html>
+
 
 
 
