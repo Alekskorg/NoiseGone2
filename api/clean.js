@@ -1,33 +1,20 @@
-// api/clean.js — TURBO-профиль для Vercel Hobby
+// api/clean.js
+export const config = { api: { bodyParser: false }, maxDuration: 60 };
 
 import Busboy from 'busboy';
-import { createWriteStream } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { readFile, unlink } from 'fs/promises';
-import ffmpegPathDefault from 'ffmpeg-static';
+import ffmpegPath from 'ffmpeg-static';
 import { spawn } from 'child_process';
+import { createWriteStream } from 'fs';
+import { readFile, unlink } from 'fs/promises';
 
-export const config = { api: { bodyParser: false } };
-
-// «Турбо» пресеты: максимально быстрые (без тяжёлого afftdn)
-const PRESETS_TURBO = {
-  podcast:   'highpass=f=120,lowpass=f=6500',
-  interview: 'highpass=f=150,lowpass=f=6000',
-  voiceover: 'highpass=f=90, lowpass=f=7500',
-  field:     'highpass=f=200,lowpass=f=5500',
+const PRESETS = {
+  podcast:  'highpass=f=100,lowpass=f=12000,afftdn=nr=15',
+  interview:'highpass=f=90,lowpass=f=12000,afftdn=nr=17',
+  voiceover:'highpass=f=80,lowpass=f=12000,afftdn=nr=18',
+  field:    'highpass=f=120,lowpass=f=11000,afftdn=nr=14'
 };
-
-// Базовые (чуть медленнее). Переключаемся через переменную среды NG_FAST.
-const PRESETS_STD = {
-  podcast:   'highpass=f=100,lowpass=f=8000,afftdn=nr=10:nf=-18',
-  interview: 'highpass=f=120,lowpass=f=7000,afftdn=nr=8:nf=-18',
-  voiceover: 'highpass=f=80, lowpass=f=9000,afftdn=nr=6:nf=-18',
-  field:     'highpass=f=200,lowpass=f=6500,afftdn=nr=12:nf=-20',
-};
-
-const FAST = (process.env.NG_FAST || '1') === '1';        // по умолчанию быстрый режим
-const PRESETS = FAST ? PRESETS_TURBO : PRESETS_STD;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -36,68 +23,90 @@ export default async function handler(req, res) {
   }
 
   const busboy = Busboy({ headers: req.headers });
-  const inPath  = join(tmpdir(), `ng_in_${Date.now()}`);
+  const inPath  = join(tmpdir(), `ng_in_${Date.now()}.wav`);
   const outPath = join(tmpdir(), `ng_out_${Date.now()}.mp3`);
 
   let gotFile = false;
   let preset = 'podcast';
-  let fileSize = 0;
 
+  // получаем preset из поля формы
+  busboy.on('field', (name, val) => {
+    if (name === 'preset' && PRESETS[val]) preset = val;
+  });
+
+  // пишем входной файл в /tmp
   const writePromise = new Promise((resolve, reject) => {
-    let ws = null;
-    busboy.on('field', (name, val) => { if (name === 'preset' && PRESETS[val]) preset = val; });
-    busboy.on('file', (_name, file) => {
+    busboy.on('file', (_name, fileStream) => {
       gotFile = true;
-      ws = createWriteStream(inPath);
-      file.on('data', c => (fileSize += c.length));
-      file.pipe(ws);
+      const ws = createWriteStream(inPath);
+      fileStream.pipe(ws);
       ws.on('finish', resolve);
       ws.on('error', reject);
-      file.on('error', reject);
+      fileStream.on('error', reject);
     });
     busboy.on('error', reject);
-    busboy.on('finish', () => { if (!gotFile) reject(new Error('No file uploaded')); });
+    busboy.on('finish', () => {
+      if (!gotFile) reject(new Error('No file uploaded'));
+    });
   });
+
+  req.pipe(busboy);
 
   try {
     await writePromise;
 
-    if (fileSize > 50 * 1024 * 1024) return res.status(413).send('File too large');
-
-    const ffmpegBin = ffmpegPathDefault || 'ffmpeg';
-
-    // Экстремально быстрый путь: моно, низкая частота, простой фильтр
+    // максимально быстрый пайплайн: моно + 32 кГц + простой шумодав
+    const filter = PRESETS[preset];
     const args = [
       '-hide_banner', '-y',
       '-i', inPath,
-      '-ac', '1',          // моно
-      '-ar', FAST ? '16000' : '22050',
-      '-af', PRESETS[preset],
-      '-c:a', 'libmp3lame',
-      '-b:a', FAST ? '96k' : '128k',
-      outPath,
+      '-vn',
+      '-ac', '1',
+      '-ar', '32000',
+      '-filter:a', filter,
+      '-codec:a', 'libmp3lame',
+      '-b:a', '160k',
+      outPath
     ];
 
-    const stderrBuf = [];
-    await new Promise((resolve, reject) => {
-      const p = spawn(ffmpegBin, args);
-      p.stderr.on('data', d => stderrBuf.push(d));
-      p.on('error', reject);
-      p.on('close', code => code === 0 ? resolve() : reject(new Error(Buffer.concat(stderrBuf).toString() || `ffmpeg exit ${code}`)));
-    });
+    const child = spawn(ffmpegPath, args, { stdio: ['ignore','pipe','pipe'] });
+
+    // Жёсткий таймаут (25с) для serverless. Если упёрлось – убиваем процесс.
+    const KILL_AFTER = 25_000;
+    const killer = setTimeout(() => {
+      try { child.kill('SIGKILL'); } catch {}
+    }, KILL_AFTER);
+
+    let stderrText = '';
+    child.stderr.on('data', d => { stderrText += d.toString(); });
+
+    const code = await new Promise(resolve => child.on('close', resolve));
+    clearTimeout(killer);
+
+    if (code !== 0) {
+      console.error('FFmpeg fail:', stderrText.slice(0, 500));
+      // вернём тело ошибки, чтобы фронт показал текст
+      res.status(500).send(stderrText || 'Processing error');
+      try { await unlink(inPath); } catch {}
+      try { await unlink(outPath); } catch {}
+      return;
+    }
 
     const data = await readFile(outPath);
     res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Content-Disposition', 'attachment; filename="cleaned.mp3"');
-    res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).send(data);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename*=UTF-8''${encodeURIComponent('cleaned.mp3')}`
+    );
+    res.status(200).send(data);
 
+    try { await unlink(inPath); } catch {}
+    try { await unlink(outPath); } catch {}
   } catch (e) {
-    console.error('[api/clean] error:', e?.message || e);
-    return res.status(500).send(`Processing error: ${e?.message || e}`);
-  } finally {
-    unlink(inPath).catch(()=>{});
-    unlink(outPath).catch(()=>{});
+    console.error('API error:', e);
+    res.status(500).send(String(e?.message || e));
+    try { await unlink(inPath); } catch {}
+    try { await unlink(outPath); } catch {}
   }
 }
 
