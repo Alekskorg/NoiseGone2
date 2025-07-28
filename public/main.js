@@ -73,9 +73,7 @@ function setLang(l) {
     btn.textContent = t.presets[i];
   });
   $(".limits").innerHTML = `<strong>${t.free}</strong> ${t.limitText}`;
-  // File info
   if (file) showFileInfo();
-  // Status/errors
   $("#status").textContent = "";
 }
 function toggleLang() {
@@ -182,7 +180,6 @@ $("#uploadForm").onsubmit = async e => {
 
   xhr.onreadystatechange = () => {
     if (xhr.readyState === 2) {
-      // started receiving
       $("#progressText").textContent = i18n[lang].processing;
       fakeProgress();
     }
@@ -250,10 +247,10 @@ function showError(xhr) {
 }
 
 window.addEventListener("keydown", e => {
-  // Enter on form when file is ready → submit
   if ((e.key === "Enter" || e.key === " ") && document.activeElement === $(".dropzone") && file) {
     $("#cleanBtn").focus();
   }
 });
 
 resetState();
+
