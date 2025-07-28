@@ -30,23 +30,18 @@
             <input id="fileInput" type="file" accept=".wav,.mp3,.m4a" aria-label="Выбрать аудиофайл" />
           </div>
         </div>
-        <div id="fileInfo" class="file-info" style="display:none"></div>
+        <div id="fileInfo" class="file-info" hidden></div>
         <button id="cleanBtn" type="submit" disabled>Очистить шум</button>
-        <button id="resetBtn" type="button" style="display:none">Новый файл</button>
-        <div class="progress-box" style="display:none" id="progressBox">
+        <button id="resetBtn" type="button" hidden>Новый файл</button>
+        <div class="progress-box" hidden id="progressBox">
           <progress id="progressBar" value="0" max="100"></progress>
           <span id="progressText"></span>
         </div>
         <div class="status" id="status"></div>
         <div class="limits" id="limits">Бесплатно: до 5 минут/день, до 50MB</div>
-      <form id="uploadForm" autocomplete="off">
+      </form>
     </div>
   </main>
   <script src="main.js"></script>
 </body>
 </html>
-
-
-
-
-
