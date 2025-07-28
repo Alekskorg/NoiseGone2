@@ -1,12 +1,12 @@
-alert("main.js работает!");
-
-document.getElementById("dropText").onclick = () => {
-    alert("Клик по области для загрузки файла! Всё ок.");
+document.getElementById("dropText").onclick = function () {
+    document.getElementById("fileInput").click();
 };
 
-
-
-
+document.getElementById("fileInput").onchange = function (e) {
+    if (e.target.files.length) {
+        alert("Файл выбран: " + e.target.files[0].name);
+    }
+};
 
 
 
