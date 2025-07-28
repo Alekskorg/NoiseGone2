@@ -14,7 +14,7 @@
       <div class="top-actions">
         <button id="langBtn" aria-label="Переключить язык">EN/RU</button>
       </div>
-      <h1>NoiseGone</h1>
+      <h1 id="title">NoiseGone</h1>
       <div class="desc" id="desc">Онлайн-очистка аудио от шума</div>
       <div class="presets" role="group" aria-label="Пресеты фильтра">
         <button class="preset-btn active" data-preset="podcast" tabindex="0">Podcast</button>
@@ -22,11 +22,11 @@
         <button class="preset-btn" data-preset="voiceover" tabindex="0">Voice‑over</button>
         <button class="preset-btn" data-preset="field" tabindex="0">Field</button>
       </div>
-      <form id="form" autocomplete="off">
+      <form id="uploadForm" autocomplete="off">
         <div class="dropzone" id="dropzone" tabindex="0" aria-label="Зона для перетаскивания файла">
           <div class="drop-content">
             <span id="dropText">Перетащите файл сюда или выберите</span>
-            <span class="formats">WAV/MP3/M4A, до 50MB</span>
+            <span class="formats" id="formats">WAV/MP3/M4A, до 50MB</span>
             <input id="fileInput" type="file" accept=".wav,.mp3,.m4a" aria-label="Выбрать аудиофайл" />
           </div>
         </div>
@@ -39,12 +39,13 @@
         </div>
         <div class="status" id="status"></div>
         <div class="limits" id="limits">Бесплатно: до 5 минут/день, до 50MB</div>
-      <form id="uploadForm" autocomplete="off">
+      </form>
     </div>
   </main>
   <script src="main.js"></script>
 </body>
 </html>
+
 
 
 
