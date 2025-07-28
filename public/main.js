@@ -79,7 +79,6 @@ function setLang(l) {
 function toggleLang() {
   setLang(lang === "ru" ? "en" : "ru");
 }
-
 function showFileInfo() {
   const t = i18n[lang];
   if (!file) {
@@ -89,7 +88,6 @@ function showFileInfo() {
   $("#fileInfo").hidden = false;
   $("#fileInfo").textContent = t.fileInfo(file.name, file.size);
 }
-
 function resetState() {
   file = null;
   fileUrl = null;
@@ -99,16 +97,15 @@ function resetState() {
   $("#resetBtn").hidden = true;
   $("#progressBox").hidden = true;
   $("#status").textContent = "";
-  $("#downloadBtn")?.remove();
+  var downloadBtn = $("#downloadBtn");
+  if (downloadBtn) downloadBtn.remove();
   $("#uploadForm").classList.remove("success");
 }
-
 function onPreset(e) {
   document.querySelectorAll(".preset-btn").forEach(btn => btn.classList.remove("active"));
   e.target.classList.add("active");
   selectedPreset = e.target.dataset.preset;
 }
-
 function onFileInput(f) {
   if (!f) return;
   file = f;
@@ -117,10 +114,8 @@ function onFileInput(f) {
   $("#resetBtn").hidden = false;
   $("#status").textContent = "";
 }
-
 $("#langBtn").onclick = toggleLang;
 setLang(lang);
-
 document.querySelectorAll(".preset-btn").forEach(btn => {
   btn.onclick = onPreset;
   btn.onkeydown = e => {
@@ -130,7 +125,6 @@ document.querySelectorAll(".preset-btn").forEach(btn => {
     }
   };
 });
-
 $("#dropText").onclick = () => $("#fileInput").click();
 $(".dropzone").ondragover = e => {
   e.preventDefault();
@@ -149,108 +143,37 @@ $("#fileInput").onchange = e => {
   if (e.target.files.length) onFileInput(e.target.files[0]);
 };
 $("#resetBtn").onclick = resetState;
-
 $("#uploadForm").onsubmit = async e => {
   e.preventDefault();
   if (!file) return;
-
   $("#cleanBtn").disabled = true;
   $("#progressBox").hidden = false;
   $("#progressBar").value = 0;
   $("#progressText").textContent = i18n[lang].uploading;
   $("#status").textContent = "";
-  $("#downloadBtn")?.remove();
-
-  // Upload
-  const form = new FormData();
-  form.append("file", file);
-  form.append("preset", selectedPreset);
-
-  let prog = 0, done = false;
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", "/api/clean", true);
-
-  xhr.upload.onprogress = e => {
-    if (e.lengthComputable) {
-      prog = Math.floor((e.loaded / e.total) * 50);
-      $("#progressBar").value = prog;
-      $("#progressBar").setAttribute("aria-valuenow", prog);
-    }
-  };
-
-  xhr.onreadystatechange = () => {
-    if (xhr.readyState === 2) {
-      $("#progressText").textContent = i18n[lang].processing;
-      fakeProgress();
-    }
-  };
-
-  let fakeProgInt = null;
-  function fakeProgress() {
-    fakeProgInt = setInterval(() => {
-      prog = Math.min(95, prog + Math.random() * 3 + 1);
-      $("#progressBar").value = prog;
-      $("#progressBar").setAttribute("aria-valuenow", prog);
-    }, 180);
-  }
-
-  xhr.responseType = "blob";
-  xhr.timeout = 60000;
-
-  xhr.onload = function () {
-    done = true;
-    if (fakeProgInt) clearInterval(fakeProgInt);
+  var downloadBtn = $("#downloadBtn");
+  if (downloadBtn) downloadBtn.remove();
+  // UI-ONLY demo, имитация загрузки/обработки
+  setTimeout(() => {
     $("#progressBar").value = 100;
-    $("#progressBar").setAttribute("aria-valuenow", 100);
     $("#progressText").textContent = i18n[lang].done;
-    if (xhr.status === 200) {
-      const blob = xhr.response;
-      fileUrl = window.URL.createObjectURL(blob);
-      const btn = document.createElement("a");
-      btn.href = fileUrl;
-      btn.download = "cleaned.mp3";
-      btn.textContent = i18n[lang].download;
-      btn.className = "main-download";
-      btn.id = "downloadBtn";
-      btn.onclick = () => {
-        setTimeout(() => resetState(), 800);
-      };
-      $("#progressBox").after(btn);
-      $("#uploadForm").classList.add("success");
-      $("#resetBtn").hidden = false;
-    } else {
-      showError(xhr);
-    }
-  };
-
-  xhr.onerror = xhr.ontimeout = function () {
-    done = true;
-    if (fakeProgInt) clearInterval(fakeProgInt);
-    showError({status: "timeout"});
-  };
-
-  xhr.send(form);
+    const btn = document.createElement("a");
+    btn.href = "#";
+    btn.download = file.name;
+    btn.textContent = i18n[lang].download;
+    btn.className = "main-download";
+    btn.id = "downloadBtn";
+    btn.onclick = () => setTimeout(() => resetState(), 800);
+    $("#progressBox").after(btn);
+    $("#uploadForm").classList.add("success");
+    $("#resetBtn").hidden = false;
+  }, 1800);
 };
-
-function showError(xhr) {
-  $("#progressBox").hidden = true;
-  $("#cleanBtn").disabled = false;
-  $("#resetBtn").hidden = false;
-  let code = xhr.status || xhr.error || xhr.code || "default";
-  if (code === 0) code = "timeout";
-  let msg = i18n[lang].errors[code] || i18n[lang].errors.default;
-  try {
-    const resp = xhr.responseText && JSON.parse(xhr.responseText);
-    if (resp && resp.message) msg = resp.message;
-  } catch {}
-  $("#status").textContent = msg;
-}
-
 window.addEventListener("keydown", e => {
   if ((e.key === "Enter" || e.key === " ") && document.activeElement === $(".dropzone") && file) {
     $("#cleanBtn").focus();
   }
 });
-
 resetState();
+
 
