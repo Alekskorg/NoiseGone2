@@ -1,7 +1,4 @@
 
-// main.js
-
-/* ========= State ========= */
 const state = {
   lang: "en",
   selectedFile: null,
