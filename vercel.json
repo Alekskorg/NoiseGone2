@@ -1,8 +1,1 @@
-{
-  "functions": {
-    "api/clean.js": {
-      "memory": 1536,
-      "maxDuration": 60
-    }
-  }
-}
+
