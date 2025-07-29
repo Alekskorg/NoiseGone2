@@ -32,34 +32,49 @@ document.getElementById('langToggle').addEventListener('click', () => {
   updateLanguage();
 });
 
-document.getElementById('dropzone').addEventListener('click', () => {
-  document.getElementById('fileInput').click();
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const processBtn = document.getElementById('processBtn');
+
+dropzone.addEventListener('click', () => fileInput.click());
+
+dropzone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropzone.classList.add('dragover');
 });
 
-document.getElementById('dropzone').addEventListener('dragover', e => e.preventDefault());
+dropzone.addEventListener('dragleave', () => {
+  dropzone.classList.remove('dragover');
+});
 
-document.getElementById('dropzone').addEventListener('drop', e => {
+dropzone.addEventListener('drop', (e) => {
   e.preventDefault();
+  dropzone.classList.remove('dragover');
+
   const file = e.dataTransfer.files[0];
   if (file) {
     selectedFile = file;
-    document.getElementById('processBtn').disabled = false;
+    processBtn.disabled = false;
+    console.log("Файл получен через drag & drop:", file.name);
   }
 });
 
-document.getElementById('fileInput').addEventListener('change', e => {
+fileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (file) {
     selectedFile = file;
-    document.getElementById('processBtn').disabled = false;
+    processBtn.disabled = false;
+    console.log("Файл выбран вручную:", file.name);
   }
 });
 
-document.getElementById('processBtn').addEventListener('click', () => {
+processBtn.addEventListener('click', () => {
   if (!selectedFile) return;
-  alert(currentLang === 'ru' ? 'Файл загружен. Шум будет удалён (заглушка).' : 'File uploaded. Noise will be removed (mock).');
-  // Здесь позже будет логика отправки файла
+  alert(
+    currentLang === 'ru'
+      ? `Файл "${selectedFile.name}" готов к обработке.`
+      : `File "${selectedFile.name}" is ready to be processed.`
+  );
 });
 
 updateLanguage();
-
