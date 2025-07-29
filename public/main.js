@@ -37,6 +37,7 @@ document.getElementById('dropzone').addEventListener('click', () => {
 });
 
 document.getElementById('dropzone').addEventListener('dragover', e => e.preventDefault());
+
 document.getElementById('dropzone').addEventListener('drop', e => {
   e.preventDefault();
   const file = e.dataTransfer.files[0];
@@ -56,9 +57,9 @@ document.getElementById('fileInput').addEventListener('change', e => {
 
 document.getElementById('processBtn').addEventListener('click', () => {
   if (!selectedFile) return;
-  alert(currentLang === 'ru' ? 'Обработка файла...' : 'Processing file...');
-  // Здесь будет логика отправки файла
+  alert(currentLang === 'ru' ? 'Файл загружен. Шум будет удалён (заглушка).' : 'File uploaded. Noise will be removed (mock).');
+  // Здесь позже будет логика отправки файла
 });
 
-// Инициализация языка
 updateLanguage();
+
