@@ -6,7 +6,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body><div class="container">
+  <button id="langToggle" class="lang-btn">EN</button>
+  <h2 id="title">Онлайн-очистка аудио от шума</h2>
+
+  <div id="dropzone" class="dropzone">
+    <label id="instruction">
+      Перетащите файл сюда или выберите
+      <input type="file" id="fileInput" accept=".wav,.mp3,.m4a" hidden>
+    </label>
+    <p class="subtext">WAV / MP3 / M4A, до 50MB</p>
+  </div>
+
+  <button id="processBtn" disabled>Очистить шум</button>
+  <p class="subtext" id="limitText">Бесплатно: до 5 минут/день, до 50MB</p>
+</div>
+
   <main>
     <div class="card" role="main">
       <img class="logo" src="logo.svg" alt="NoiseGone logo" width="68" height="68" />
