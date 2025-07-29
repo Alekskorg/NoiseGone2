@@ -1,50 +1,115 @@
+<!-- index.html -->
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NoiseGone</title>
+  <title>NoiseGone – Online Noise Remover</title>
+
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
   <link rel="stylesheet" href="style.css" />
 </head>
-<body<div class="wrapper">
-  <div class="card">
-    <button id="langToggle" class="lang-btn">EN</button>
-    <h2>NoiseGone</h2>
-    <p id="title">Онлайн-очистка аудио от шума</p>
+<body>
+  <!-- Header -->
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a href="#" class="logo" aria-label="NoiseGone">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="16" fill="white"/>
+          <path d="M6 16h2m2 0h2m2 0h2m2 0h2m2 0h2" stroke="#6c63ff" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="logo-text">NoiseGone</span>
+      </a>
 
-    <div id="dropzone" class="dropzone">
-      <span id="instruction">Перетащите файл сюда или выберите</span>
-      <input type="file" id="fileInput" accept=".wav,.mp3,.m4a" />
-      <p class="subtext">WAV / MP3 / M4A, до 50MB</p>
+      <nav id="nav" class="nav" aria-label="Main">
+        <ul>
+          <li><a href="#" data-i18n="navEnhancer"></a></li>
+          <li><a href="#" data-i18n="navNoiseRemover"></a></li>
+          <li><a href="#" data-i18n="navVocalRemover"></a></li>
+          <li><a href="#" data-i18n="navEchoRemover"></a></li>
+          <li><a href="#" data-i18n="navDashboard"></a></li>
+          <li><a href="#" data-i18n="navPricing"></a></li>
+          <li><a href="#" data-i18n="navLogin"></a></li>
+        </ul>
+      </nav>
+
+      <button id="burger" class="burger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
+  </header>
 
-    <button id="processBtn" disabled>Очистить шум</button>
-    <p class="subtext" id="limitText">Бесплатно: до 5 минут/день, до 50MB</p>
-  </div>
-</div>
+  <!-- Plans -->
+  <section class="plans container" aria-label="Pricing plans">
+    <button class="chip plan" data-i18n="plan60"></button>
+    <button class="chip plan" data-i18n="plan300"></button>
+    <button class="chip plan" data-i18n="planUnlimited"></button>
+  </section>
 
-  <div class="wrapper">
-    <div class="card">
-      <button id="langToggle" class="lang-btn">EN</button>
-      <h2>NoiseGone</h2>
-      <p id="title">Онлайн-очистка аудио от шума</p>
+  <!-- Main card -->
+  <main class="container">
+    <article class="card" id="card">
+      <header class="card-header">
+        <div>
+          <h1 class="card-title" data-i18n="title"></h1>
+          <p class="card-subtitle" data-i18n="subtitle"></p>
+        </div>
+        <select id="langSwitch" aria-label="Language switch">
+          <option value="en">EN</option>
+          <option value="ru">RU</option>
+        </select>
+      </header>
 
-      <div id="dropzone" class="dropzone">
-        <label id="instruction">
-          Перетащите файл сюда или выберите
-          <input type="file" id="fileInput" accept=".wav,.mp3,.m4a" hidden />
-        </label>
-        <p class="subtext">WAV / MP3 / M4A, до 50MB</p>
+      <div class="scenarios" role="group" aria-label="Use-case">
+        <button class="chip scenario active" data-scenario="podcast" data-i18n="scenarioPodcast"></button>
+        <button class="chip scenario" data-scenario="interview" data-i18n="scenarioInterview"></button>
+        <button class="chip scenario" data-scenario="voiceover" data-i18n="scenarioVoiceOver"></button>
+        <button class="chip scenario" data-scenario="field" data-i18n="scenarioField"></button>
       </div>
 
-      <button id="processBtn" disabled>Очистить шум</button>
-      <p class="subtext" id="limitText">Бесплатно: до 5 минут/день, до 50MB</p>
-    </div>
-  </div>
+      <!-- Dropzone -->
+      <div id="dropzone" class="dropzone" tabindex="0" aria-describedby="dzHint" aria-live="polite">
+        <p id="dzText" data-i18n="dropMessage"></p>
+        <p id="dzHint" class="hint" data-i18n="dropFormats"></p>
+        <input type="file" id="fileInput" accept=".wav,.mp3,.m4a" hidden />
+      </div>
+      <p id="fileInfo" class="file-info" aria-live="polite"></p>
 
-  <script src="main.js"></script>
+      <!-- Actions -->
+      <div class="actions">
+        <button id="resetBtn" class="btn secondary" data-i18n="btnReset" disabled></button>
+        <button id="cleanBtn" class="btn primary" data-i18n="btnClean" disabled></button>
+      </div>
+
+      <!-- Progress -->
+      <div id="progressWrap" class="progress-wrap" hidden aria-hidden="true">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <!-- Result -->
+      <div id="result" class="result" hidden aria-live="polite">
+        <p data-i18n="done"></p>
+        <div class="actions">
+          <button id="downloadBtn" class="btn primary" data-i18n="btnDownload"></button>
+          <button id="newBtn" class="btn secondary" data-i18n="btnNew"></button>
+        </div>
+      </div>
+
+      <p class="note" data-i18n="freeNote"></p>
+    </article>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2025 NoiseGone</p>
+    <a href="#" data-i18n="privacy"></a> ·
+    <a href="mailto:support@noisegone.app">support@noisegone.app</a>
+  </footer>
+
+  <script src="main.js" defer></script>
 </body>
 </html>
-
-
-
