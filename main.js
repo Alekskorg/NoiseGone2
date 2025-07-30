@@ -206,5 +206,11 @@ function attachEvents() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initLanguage();
-  attachEvents();
+  attachEvents();// Глобально отменяем дефолт-drag, чтобы DataTransfer не чистился
+['dragover', 'drop'].forEach(ev =>
+  document.addEventListener(ev, e => {
+    if (e.target !== ui.dropzone) e.preventDefault();
+  })
+);
+
 });
