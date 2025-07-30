@@ -213,4 +213,14 @@ document.addEventListener('DOMContentLoaded', () => {
   })
 );
 
-});
+});// Глобально отключаем стандартный drag'n'drop,
+// чтобы DataTransfer.files не очищался
+['dragover', 'drop'].forEach(ev =>
+  document.addEventListener(ev, e => {
+    if (e.target !== ui.dropzone) e.preventDefault();
+  })
+);
+
+// Временный лог, чтобы видеть, что событие доходит
+ui.dropzone.addEventListener('drop', () => console.log('DROP EVENT'));
+
