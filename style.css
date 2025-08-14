@@ -188,16 +188,14 @@ body {
   background: #fff;
 }
 
-/* Dropzone */
-.dropzone {
-  margin-top: 1.25rem;
-  border: 2px dashed #c7c7ff;
-  border-radius: 12px;
-  padding: 2.5rem 1rem;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color var(--transition), background var(--transition);
+.dropzone{ position:relative; cursor:pointer; }
+.dropzone input[type="file"]{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  opacity:0;            /* невидимый */
+  cursor:pointer;       /* чтобы было понятно, что зона кликабельна */
 }
+.dropzone:focus{ outline:2px solid #6c63ff; outline-offset:3px; }
 
 .dropzone.hover {
   border-color: var(--primary);
