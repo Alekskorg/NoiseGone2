@@ -224,3 +224,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // Временный лог, чтобы видеть, что событие доходит
 ui.dropzone.addEventListener('drop', () => console.log('DROP EVENT'));
 
+// уже есть:
+const dz = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+// ДОБАВЬ — фолбэк для некоторых мобильных браузеров
+dz?.addEventListener('keydown', (e)=>{
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput?.click();
+  }
+});
+dz?.addEventListener('touchend', ()=>{
+  // на части устройств click не всплывает после touch
+  fileInput?.click();
+}, {passive:true});
